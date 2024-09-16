@@ -2,6 +2,9 @@
 #include <ESPAsyncWebServer.h> 
 #include "WiFiCredentials.h" // You need to update this file locally
 
+// #define SERVER_PORT = 80;
+// #define BAUD_RATE = 115200;
+
 AsyncWebServer server(80); // Port 80
 
 void setup() {

@@ -5,3 +5,5 @@
 2. Install [AsyncTCP library](https://github.com/me-no-dev/AsyncTCP/archive/refs/heads/master.zip), extract + rename the download to AsyncTCP, and move the folder to your Arduino/libraries directory
 
 > You might need to restart your Arduino IDE for the updates to take place
+
+3. Update the WiFiCredentials.h file with your personal username and password. This file doesn't get added to GitHub, so any changes you make won't appear in the repository.

@@ -1,2 +1,0 @@
-#define WIFI_USERNAME "your_USERNAME"
-#define WIFI_PASSWORD "your_PASSWORD"

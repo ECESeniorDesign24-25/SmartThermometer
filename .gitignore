@@ -1,3 +1,7 @@
+# User-defined secrets
+ESP32/WiFiCredentials.h
+WiFiCredentials.h
+
 # Prerequisites
 *.d
 

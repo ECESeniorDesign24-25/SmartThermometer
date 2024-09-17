@@ -36,5 +36,9 @@ Then run the following in your terminal:
 ```
 set_creds.bat
 ```
-   
+
+You must also run the following:
+```
+git update-index --assume-unchanged set_creds.sh
+```
 

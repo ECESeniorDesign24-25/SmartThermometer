@@ -4,6 +4,7 @@ from Constants import EMAIL_ADDRESS, EMAIL_PASSWORD
 
 def SendEmail(receiver, subject, body):
     try:
+        print("Email address: ", EMAIL_ADDRESS)
         if EMAIL_ADDRESS is None:
             print("Invalid 'from' email address. Set it by running: \n\texport EMAIL_ADDRESS='[your email address]'")
             raise Exception("Invalid 'from' email address")
@@ -18,7 +19,7 @@ def SendEmail(receiver, subject, body):
         msg['From'] = EMAIL_ADDRESS
         msg['To'] = receiver
 
-        s = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        s = smtplib.SMTP_SSL(host='smtp.gmail.com', port=465)
         s.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         s.send_message(msg)
         s.quit()

@@ -3,24 +3,9 @@
 # WiFiCredentials.h
 
 __pycache__/
+venv/*
 
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+.dll
 
 # Fortran module files
 *.mod

@@ -5,9 +5,9 @@
 // #define SERVER_PORT = 80;
 // #define BAUD_RATE = 115200;
 
-AsyncWebServer server(80); // Port 80
-
 void setup() {
+  AsyncWebServer server(80); // Port 80
+
   Serial.begin(115200);
   
   if (WIFI_USERNAME == "" || WIFI_PASSWORD == "") {

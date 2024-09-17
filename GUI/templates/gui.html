@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Graph - Two Sensors</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            text-align: center;
+            margin: 20px;
+        }
+        .input-section {
+            margin-bottom: 20px;
+        }
+        .status {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            position: relative;
+            width: 1000px; /* Increased width */
+            height: 600px;  /* Increased height */
+            margin: 0 auto;
+        }
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Temperature Graph - Two Sensors</h1>
+
+        <form method="POST" action="/user" onsubmit="submitForm(event, '/user')">
+            <div class="input-section">
+                <label for="email">Email:</label>
+                <input type="text" id="email" name="email" required>
+                <label for="phone">Phone Number:</label>
+                <input type="text" id="phone" name="phone" required>
+            </div>
+            <div class="input-section">
+                <label for="carrier">Carrier:</label>
+                <select id="carrier" name="carrier" required>
+                    <option value="ATT">AT&T</option>
+                    <option value="TMOBILE">T-Mobile</option>
+                    <option value="VERIZON">Verizon</option>
+                    <option value="SPRINT">Sprint</option>
+                </select>
+                <button type="submit">Submit</button>
+            </div>
+        </form>
+
+        <form method="POST" action="/max_min" onsubmit="submitForm(event, '/max_min')">
+            <div class="input-section">
+                <label for="max">Max:</label>
+                <input type="text" id="max" name="max" required>
+                <label for="min">Min:</label>
+                <input type="text" id="min" name="min" required>
+                <button type="submit">Set Max and Min</button>
+            </div>
+        </form>
+
+
+{#        <form method="POST" action="/user">#}
+{#            <div class="input-section">#}
+{#                <!-- Top line: email and phone number -->#}
+{#                <label for="email" style="display: inline-block;">Email:</label>#}
+{#                <input type="text" id="email" name="email" placeholder="Enter email" required style="display: inline-block; margin-right: 10px;">#}
+{##}
+{#                <label for="phone" style="display: inline-block;">Phone Number:</label>#}
+{#                <input type="text" id="phone" name="phone" placeholder="Enter phone number" required style="display: inline-block;">#}
+{#            </div>#}
+{##}
+{#            <div class="input-section" style="margin-top: 10px;">#}
+{#                <!-- Second line: carrier selection and submit button -->#}
+{#                <label for="carrier" style="display: inline-block;">Carrier:</label>#}
+{#                <select id="carrier" name="carrier" required style="display: inline-block; margin-right: 10px;">#}
+{#                    <option value="ATT">AT&T</option>#}
+{#                    <option value="TMOBILE">T-Mobile</option>#}
+{#                    <option value="VERIZON">Verizon</option>#}
+{#                    <option value="SPRINT">Sprint</option>#}
+{#                </select>#}
+{#                <button type="submit" style="display: inline-block;">Submit</button>#}
+{#            </div>#}
+{#        </form>#}
+{##}
+{#        <form method="POST" action="/max_min">#}
+{#            <div class="input-section">#}
+{#                <label for="max" style="display: inline-block;">Max:</label>#}
+{#                <input type="text" id="max" name="max" placeholder="Enter Maximum" required style="display: inline-block; margin-right: 10px;">#}
+{##}
+{#                <label for="min" style="display: inline-block;">Min:</label>#}
+{#                <input type="text" id="min" name="min" placeholder="Enter Minimum" required style="display: inline-block; margin-right: 10px;">#}
+{##}
+{#                <button type="submit" style="display: inline-block;">Set Max and Min</button>#}
+{#            </div>#}
+        </form>
+
+        <form method="POST" action="/switch_scale" style="margin-top: 20px;">
+            <div class="input-section">
+                <label for="power">Click Here to Switch Scale</label>
+                <button type="submit">Switch Scale</button>
+            </div>
+        </form>
+
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+            <form method="POST" action="/power_off" style="margin-right: 10px;">
+                <div class="input-section">
+                    <button type="submit">Turn Sensors Off</button>
+                </div>
+            </form>
+
+            <form method="POST" action="/power_on">
+                <div class="input-section">
+                    <button type="submit">Turn Sensors On</button>
+                </div>
+            </form>
+        </div>
+
+
+        <div class="status" id="temperatureStatus1">Sensor 1 Temperature: Loading...</div>
+        <div class="status" id="temperatureStatus2">Sensor 2 Temperature: Loading...</div>
+
+        <div class="chart-container">
+            <canvas id="temperatureChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('temperatureChart').getContext('2d');
+        let timeElapsed = 0;
+        const MAX_TIME = 300; // Maximum time to display (in seconds)
+        const temperatureChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Dynamic labels for time
+                datasets: [
+                    {
+                        label: 'Sensor 1 Temperature',
+                        data: [],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false,
+                        yAxisID: 'yCelsius'
+                    },
+                    {
+                        label: 'Sensor 2 Temperature',
+                        data: [],
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        fill: false,
+                        yAxisID: 'yCelsius'
+                    },
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        reverse: true,
+                        title: {
+                            display: true,
+                            text: 'Time (seconds)'
+                        },
+                        min: 0,
+                        max: 300,
+                        ticks: {
+                            autoSkip: false
+                        }
+                    },
+                    yCelsius: {
+                        position: 'left',
+                        min: 10,
+                        max: 50,
+                        title: {
+                            display: true,
+                            text: 'Temperature (°C)'
+                        }
+                    },
+                    yFahrenheit: {
+                        position: 'right',
+                        min: 50, // Corresponding Fahrenheit equivalent of 10°C
+                        max: 122, // Corresponding Fahrenheit equivalent of 50°C
+                        title: {
+                            display: true,
+                            text: 'Temperature (°F)'
+                        }
+                    }
+                },
+                pan: {
+                    enabled: true,
+                    mode: 'x',
+                },
+                zoom: {
+                    enabled: true,
+                    mode: 'x',
+                },
+                scroll: {
+                    enabled: true,
+                    mode: 'x',
+                }
+            }
+        });
+
+        function celsiusToFahrenheit(celsius) {
+            return (celsius * 9/5) + 32;
+        }
+
+        async function updateChart(sensor1Temperature, sensor2Temperature) {
+            timeElapsed++;
+
+            // Add data to datasets and labels, then remove older data to create scrolling effect
+            if (sensor1Temperature !== null && sensor1Temperature !== -110000.00) {
+                temperatureChart.data.datasets[0].data.push({x: 0, y: sensor1Temperature});
+            }
+
+            if (sensor2Temperature !== null && sensor2Temperature !== -110000.00) {
+                temperatureChart.data.datasets[1].data.push({x: 0, y: sensor2Temperature});
+            }
+
+            // Add the timeElapsed value to the labels (x-axis) and limit the time window
+            temperatureChart.data.labels = Array.from({length: 300}, (_, i) => i);
+
+            // Keep the time window to 300 seconds and scroll the graph leftwards
+            if (timeElapsed > MAX_TIME) {
+                // Remove the first data points (to simulate scrolling)
+                temperatureChart.data.labels.shift();
+                temperatureChart.data.datasets[0].data.shift();
+                temperatureChart.data.datasets[1].data.shift();
+            }
+
+            // Update the chart
+            temperatureChart.update();
+        }
+
+
+        async function fetchTemperature1Data() {
+            try {
+                const response = await fetch('/temperature1');  // Call the Flask route for Sensor 1
+                const data = await response.json();
+                const currentTemperature = data.temperature || null;  // Get temperature from JSON response
+
+                document.getElementById('temperatureStatus1').textContent =
+                    currentTemperature !== null || currentTemperature !== -100000?
+                    `Sensor 1 Temperature: ${currentTemperature} °C` :
+                    'Sensor 1 is unplugged';
+
+                document.getElementById('temperatureStatus1').textContent =
+                    currentTemperature === "None" ? `Sensor 1: No Data Available`: currentTemperature;
+
+                return currentTemperature;
+
+            } catch (error) {
+                document.getElementById('temperatureStatus1').textContent = 'Sensor 1: No Data Available';
+                return null;
+            }
+        }
+
+        async function fetchTemperature2Data() {
+            try {
+                const response = await fetch('/temperature2');  // Call the Flask route for Sensor 2
+                const data = await response.json();
+                const currentTemperature = data.temperature || null;  // Get temperature from JSON response
+
+                document.getElementById('temperatureStatus2').textContent =
+                    currentTemperature !== null || currentTemperature !== -100000 ?
+                    `Sensor 2 Temperature: ${currentTemperature} °C` :
+                    'Sensor 2 is unplugged';
+
+                document.getElementById('temperatureStatus2').textContent =
+                    currentTemperature === "None" ? `Sensor 2: No Data Available`: currentTemperature;
+
+                return currentTemperature;
+
+            } catch (error) {
+                document.getElementById('temperatureStatus2').textContent = 'Sensor 2: No Data Available';
+                return null;
+            }
+        }
+
+        async function fetchAndUpdateData() {
+            const sensor1Temperature = await fetchTemperature1Data();
+            const sensor2Temperature = await fetchTemperature2Data();
+            await updateChart(sensor1Temperature, sensor2Temperature);
+        }
+
+        setInterval(fetchAndUpdateData, 1000);
+    </script>
+</body>
+</html>

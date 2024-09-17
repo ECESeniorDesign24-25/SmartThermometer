@@ -1,15 +1,15 @@
-from Constants import EMAIL_ADDRESS, MAX_TEMPERATURE, MIN_TEMPERATURE
+from Constants import EMAIL_ADDRESS, MAX_TEMPERATURE, MIN_TEMPERATURE, OFF_TEMPERATURE
 from EmailService import SendEmail
 from SMSService import SendSMS
 from Receiver import Receiver
 from ESPUtils import PollTemperatureFromESP
 
 
-def Start():
+def Start(email_address: str = EMAIL_ADDRESS, phone_number: str =  "6087974248" , carrier: str = "VERIZON"):
     """
     Main loop
     """
-    receiver = Receiver(EMAIL_ADDRESS, "6087974248", "VERIZON")
+    receiver = Receiver(email_address, phone_number, carrier)
 
     while True:
         temperature1 = ProcessTemperature(receiver=receiver, sensor=1, unit="C")

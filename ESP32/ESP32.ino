@@ -10,7 +10,7 @@ AsyncWebServer server(80); // Port 80
 void setup() {
   Serial.begin(115200);
   
-  if (WIFI_USERNAME == "your_USERNAME" || WIFI_PASSWORD == "your_PASSWORD") {
+  if (WIFI_USERNAME == "" || WIFI_PASSWORD == "") {
     Serial.println("Invalid username or password for wifi connection.");
   }
 

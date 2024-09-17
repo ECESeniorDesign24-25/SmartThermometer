@@ -27,9 +27,9 @@ source ./set_creds.sh
 
 #### For Windows systems:
 1. Change the name from set_creds.sh to set_creds.bat
-2. Changes the "export" to "set" like so:
+2. Change the "export" to "set" like so:
 ```
-EMAIL_ADDRESS="[Your email address]"
+set EMAIL_ADDRESS="[Your email address]"
 set EMAIL_PASSWORD="[Your app-specific password]"
 ```
 Then run the following in your terminal:

@@ -2,6 +2,8 @@
 ESP32/WiFiCredentials.h
 WiFiCredentials.h
 
+__pycache__/
+
 # Prerequisites
 *.d
 

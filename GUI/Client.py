@@ -2,26 +2,29 @@ from Constants import EMAIL_ADDRESS, MAX_TEMPERATURE, MIN_TEMPERATURE
 from EmailService import SendEmail
 from SMSService import SendSMS
 from Receiver import Receiver
-import time 
+from ESPUtils import PollTemperatureFromESP
 
 
 def Start():
-    """ 
+    """
     Main loop
     """
     receiver = Receiver(EMAIL_ADDRESS, "6087974248", "VERIZON")
-    emailResult = SendEmail(receiver, "Temperature Monitor Started", "Temperature monitor has started")
+    emailResult = SendEmail(
+        receiver, "Temperature Monitor Started", "Temperature monitor has started"
+    )
     smsResult = SendSMS(receiver, "Temperature monitor has started")
 
     if emailResult:
         print("Email sent")
     else:
         print("Email failed to send")
-    
+
     if smsResult:
         print("SMS sent")
     else:
         print("SMS failed to send")
+
 
 def ProcessTemperature(receiver: Receiver, message: str):
     """
@@ -37,7 +40,6 @@ def ProcessTemperature(receiver: Receiver, message: str):
             SendSMS(receiver.phoneNumber, receiver.cellCarrier, message)
     else:
         print("Error polling temperature")
-
 
 
 if __name__ == "__main__":

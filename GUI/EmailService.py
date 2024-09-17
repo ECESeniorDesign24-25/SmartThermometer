@@ -1,23 +1,26 @@
 import smtplib
+from Receiver import Receiver
 from email.message import EmailMessage
 from Constants import EMAIL_ADDRESS, EMAIL_PASSWORD
 
-def SendEmail(receiver, subject, body):
+def SendEmail(receiver: Receiver, subject: str, message: str):
+    """
+    Sends an email to the given receiver email address
+    """
     try:
-        print("Email address: ", EMAIL_ADDRESS)
-        if EMAIL_ADDRESS is None:
+        if not EMAIL_ADDRESS or EMAIL_ADDRESS == "":
             print("Invalid 'from' email address. Set it by running: \n\texport EMAIL_ADDRESS='[your email address]'")
             raise Exception("Invalid 'from' email address")
-        if EMAIL_PASSWORD is None:
+        if not EMAIL_ADDRESS or EMAIL_ADDRESS == "":
             print("Invalid 'from' email password. Set it by running: \n\texport EMAIL_PASSWORD='[your email password]'")  
             raise Exception("Invalid 'from' email password")
 
         msg = EmailMessage()
-        msg.set_content(body)
+        msg.set_content(message)
 
         msg['Subject'] = subject
         msg['From'] = EMAIL_ADDRESS
-        msg['To'] = receiver
+        msg['To'] = receiver.emailAddress
 
         s = smtplib.SMTP_SSL(host='smtp.gmail.com', port=465)
         s.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
@@ -25,5 +28,5 @@ def SendEmail(receiver, subject, body):
         s.quit()
         return True
     except Exception as e:
-        print("Error sending email: " + str(e))
+        print(f"ERror sending email: {e}")
         return False

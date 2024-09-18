@@ -14,10 +14,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up permissions
-        run: chmod +x run_tests.sh
+        run: chmod +x Tests/run_tests.sh
 
       - name: Run test script
-        run: ./run_tests.sh
+        run: ./Tests/run_tests.sh
 
       - name: Check test result
         if: failure()

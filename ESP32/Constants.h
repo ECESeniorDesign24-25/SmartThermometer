@@ -1,0 +1,9 @@
+#define WIFI_USERNAME ""
+#define WIFI_PASSWORD ""
+#define POWER_SWITCH_PIN 13
+#define TEMP1_BUTTON_PIN 14
+#define TEMP2_BUTTON_PIN 27
+#define TEMP1_SENSOR_PIN 32
+#define TEMP2_SENSOR_PIN 33
+#define MIN_TEMP 0
+#define MAX_TEMP 2000

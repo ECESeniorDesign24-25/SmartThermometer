@@ -4,6 +4,9 @@
 #include <ESPAsyncWebServer.h>
 #include "Constants.h"
 #include "SensorUtils.h"
+#include <DS18B20.h>
+#include <OneWire.h>
+#include "LiquidCrystal.h"
 
 bool powerOn = true;
 bool button1On = false;
@@ -25,16 +28,57 @@ unsigned long debounceDelay = 50;
 float temp1 = 0;
 float temp2 = 0;
 
+OneWire oneWire(ONE_WIRE_BUS);
+DS18B20 sensor(&oneWire);
+
+LiquidCrystal lcd(RS_PIN, ENABLE_PIN, D4_PIN, D5_PIN, D6_PIN, D7_PIN);
+
+
 void setup() {
+  lcd.begin(16, 2);
+  // pinMode(25, INPUT);    // pushbutton temp 1
+  // pinMode(33, INPUT);    // pushbutton temp 2
+  lcd.setCursor(1, 0);
+  lcd.print("Sensor 1 OFF");
+  lcd.setCursor(1, 1);
+  lcd.print("Sensor 2 OFF");
+
+  sensor.begin();
+  sensor.setResolution(11);
   pinMode(POWER_SWITCH_PIN, INPUT_PULLUP);
-  pinMode(TEMP1_BUTTON_PIN, INPUT_PULLUP);
-  pinMode(TEMP2_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(TEMP1_BUTTON_PIN, INPUT); // INPUT_PULLUP);
+  pinMode(TEMP2_BUTTON_PIN, INPUT); //INPUT_PULLUP);
   pinMode(TEMP1_SENSOR_PIN, INPUT);
   pinMode(TEMP2_SENSOR_PIN, INPUT);
   launchServer(80);
 }
 
-void loop() {}
+void loop() {
+  sensor.requestTemperatures();
+  while (!sensor.isConversionComplete()) {
+    delay(1);
+  }
+  double temp = sensor.getTempC();
+  button1 = digitalRead(33);
+  if (button1 == LOW) {
+      lcd.clear();
+      lcd.setCursor(1, 0);
+      lcd.print(temp);
+    }
+  else {
+      lcd.setCursor(1, 0);
+      lcd.print("Sensor 1 OFF");
+    }
+  button2 = digitalRead(25);
+  if (button2 == LOW) {
+      lcd.setCursor(1, 1);
+      lcd.print("Sensor 2 ON ");
+    }
+  else {
+      lcd.setCursor(1, 1);
+      lcd.print("Sensor 2 OFF");
+    }
+}
 
 void launchServer(int port) {
   AsyncWebServer server(port);

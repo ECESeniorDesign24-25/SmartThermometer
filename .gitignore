@@ -5,6 +5,9 @@
 __pycache__/
 venv/*
 
+# incase test doesnt remove executable
+Tests/testRunner
+
 .dll
 
 # Fortran module files

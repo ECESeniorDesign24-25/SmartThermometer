@@ -4,6 +4,7 @@
 echo "Compiling test files..."
 g++ -DUNIT_TEST -I./lib/unity -I./lib -I./ESP32 -I./tests -o Tests/testRunner Tests/Tests.cpp ESP32/SensorUtils.cpp lib/unity/unity.c lib/ArduinoMock.cpp
 
+
 # Check if compilation succeeded
 if [ $? -ne 0 ]; then
   echo "Compilation failed!"
@@ -12,7 +13,7 @@ fi
 
 # Run the tests
 echo "Running tests..."
-./tests/testRunner
+./Tests/testRunner
 
 # Check if tests succeeded
 if [ $? -eq 0 ]; then

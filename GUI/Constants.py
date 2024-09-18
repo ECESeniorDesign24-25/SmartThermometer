@@ -10,4 +10,5 @@ CARRIERS = {
 }
 MAX_TEMPERATURE = 100.0
 MIN_TEMPERATURE = 0.0
-ESP32_IP = ""
+ESP32_SERVER = "http://esp32.local/"
+

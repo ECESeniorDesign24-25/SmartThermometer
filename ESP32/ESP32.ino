@@ -4,6 +4,9 @@
 #include <ESPAsyncWebServer.h>
 #include "Constants.h"
 #include "SensorUtils.h"
+#include <DallasTemperature.h>
+#include <OneWire.h>
+#include <LiquidCrystal.h>
 
 bool powerOn = true;
 bool button1On = false;
@@ -25,64 +28,63 @@ unsigned long debounceDelay = 50;
 float temp1 = 0;
 float temp2 = 0;
 
+OneWire oneWire(TEMP1_SENSOR_PIN);
+DallasTemperature tempSensor1(&oneWire);
+LiquidCrystal lcd(rs, enable, d4, d5, d6, d7);
+
+void loop() {
+}
+
 void setup() {
-  pinMode(POWER_SWITCH_PIN, INPUT_PULLUP);
   pinMode(TEMP1_BUTTON_PIN, INPUT_PULLUP);
   pinMode(TEMP2_BUTTON_PIN, INPUT_PULLUP);
   pinMode(TEMP1_SENSOR_PIN, INPUT);
-  pinMode(TEMP2_SENSOR_PIN, INPUT);
+  // pinMode(TEMP2_SENSOR_PIN, INPUT);
   launchServer(80);
+  lcd.begin(16, 2);
 }
-
-void loop() {}
 
 void launchServer(int port) {
   AsyncWebServer server(port);
 
-  Serial.begin(115200);
-  
+  // Serial.begin(115200);  // Initialize Serial communication
+
   if (WIFI_USERNAME == "" || WIFI_PASSWORD == "") {
-    Serial.println("Invalid username or password for wifi connection.");
+    // Serial.println("Invalid username or password for WiFi connection.");
+    return;  // Exit if WiFi credentials are invalid
   }
 
+  // Connect to WiFi
   WiFi.begin(WIFI_USERNAME, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.println("Connecting to WiFi...");
+    // Serial.println("Connecting to WiFi...");
   }
-  Serial.printf("Connected to WiFi with IP Address: %s\n", WiFi.localIP().toString().c_str());
+  // Serial.printf("Connected to WiFi with IP Address: %s\n", WiFi.localIP().toString().c_str());
 
+  // Setup mDNS
   if (!MDNS.begin("esp32")) {
-    Serial.println("Error setting up MDNS.");
+    // Serial.println("Error setting up MDNS.");
     while (1) {
       delay(1000);
     }
   }
-  Serial.println("mDNS started.");
+  // Serial.println("mDNS started.");
 
-  // Endpoint for power switch status
-  server.on("/power", HTTP_GET, [](AsyncWebServerRequest* request) {
-    int powerRead = digitalRead(POWER_SWITCH_PIN);
-    checkButtonStatus(powerRead, powerOn, powerState, lastPowerState, debounceDelay, lastPowerDebounceTime);
-    request->send(200, "text/plain", String(powerOn));
-  });
-
-  // Endpoint for temperature1 value
+  // Define web server endpoint
   server.on("/temperature1", HTTP_GET, [](AsyncWebServerRequest* request) {
+    // Serial.println("Received request for /temperature1");
     int buttonRead = digitalRead(TEMP1_BUTTON_PIN);
     checkButtonStatus(buttonRead, button1On, button1State, lastButton1State, debounceDelay, lastButton1DebounceTime);
     int temp = digitalRead(TEMP1_SENSOR_PIN);
     request->send(200, "text/plain", String(calculateTemperature(button1On, temp)));
   });
 
-
-  // Endpoint for temperature2 value
-  server.on("/temperature2", HTTP_GET, [](AsyncWebServerRequest* request) {
-    int buttonRead = digitalRead(TEMP2_BUTTON_PIN);
-    checkButtonStatus(buttonRead, button2On, button2State, lastButton2State, debounceDelay, lastButton2DebounceTime);
-    int temp = digitalRead(TEMP2_SENSOR_PIN);
-    request->send(200, "text/plain", String(calculateTemperature(button2On, temp)));
-  });
-
+  // Start the server
   server.begin();
+  lcd.clear();  // Clear the LCD screen
+  lcd.setCursor(0, 0);  // Set cursor to the first row
+  lcd.print("IP Address:");  // Display the label
+  lcd.setCursor(0, 1);  // Set cursor to the second row
+  lcd.print(WiFi.localIP().toString());  // Display the IP address
 }

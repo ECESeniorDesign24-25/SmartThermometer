@@ -7,6 +7,7 @@
 #include <DallasTemperature.h>
 #include <OneWire.h>
 #include <LiquidCrystal.h>
+// #include <Streaming.h>
 
 bool powerOn = true;
 bool button1On = false;
@@ -47,7 +48,7 @@ void setup() {
 void launchServer(int port) {
   AsyncWebServer server(port);
 
-  // Serial.begin(115200);  // Initialize Serial communication
+  Serial.begin(115200);  // Initialize Serial communication
 
   if (WIFI_USERNAME == "" || WIFI_PASSWORD == "") {
     // Serial.println("Invalid username or password for WiFi connection.");

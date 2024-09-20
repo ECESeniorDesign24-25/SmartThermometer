@@ -1,2 +1,2 @@
-#define WIFI_USERNAME ""
-#define WIFI_PASSWORD ""
+#define WIFI_USERNAME "NETGEAR79"
+#define WIFI_PASSWORD "408JsgIowa"

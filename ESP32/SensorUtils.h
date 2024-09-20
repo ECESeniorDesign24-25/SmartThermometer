@@ -6,7 +6,8 @@
 #include <string>
 
 #ifdef UNIT_TEST
-  #include "../lib/ArduinoMock.h"  // For testing
+  #include "../lib/ArduinoMock.h" 
+  #include "../lib/DallasTemperatureMock.h" 
 #else
   #include <Arduino.h>
 #endif

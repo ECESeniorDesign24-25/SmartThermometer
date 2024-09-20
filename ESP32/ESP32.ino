@@ -2,53 +2,56 @@
 #include <ESPmDNS.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include "Constants.h"
+#include <LiquidCrystal.h>
 #include "SensorUtils.h"
+#include "Constants.h"
 
-bool powerOn = true;
+const char* ssid = WIFI_USERNAME;
+const char* password = WIFI_PASSWORD; 
+
+float temp1 = 0;
+float temp2 = 0;
+
 bool button1On = false;
 bool button2On = false;
 
-int powerState = HIGH;
 int button1State = LOW;
 int button2State = LOW;
 
-int lastPowerState = HIGH;
 int lastButton1State = LOW;
 int lastButton2State = LOW;
 
-unsigned long lastPowerDebounceTime = 0;
 unsigned long lastButton1DebounceTime = 0;
 unsigned long lastButton2DebounceTime = 0;
 
 unsigned long debounceDelay = 50;
-float temp1 = 0;
-float temp2 = 0;
+
+// setup temperature sensors
+OneWire oneWire1(TEMP1_SENSOR_PIN);
+OneWire oneWire2(TEMP2_SENSOR_PIN);
+
+DallasTemperature sensor1(&oneWire1);
+DallasTemperature sensor2(&oneWire2);
+
+AsyncWebServer server(80);
+
+LiquidCrystal lcd(RS, ENABLE, D4, D5, D6, D7);
+
+String unit = "C";
 
 void setup() {
-  pinMode(POWER_SWITCH_PIN, INPUT_PULLUP);
   pinMode(TEMP1_BUTTON_PIN, INPUT_PULLUP);
   pinMode(TEMP2_BUTTON_PIN, INPUT_PULLUP);
   pinMode(TEMP1_SENSOR_PIN, INPUT);
   pinMode(TEMP2_SENSOR_PIN, INPUT);
-  launchServer(80);
-}
-
-void loop() {}
-
-void launchServer(int port) {
-  AsyncWebServer server(port);
 
   Serial.begin(115200);
-  
-  if (WIFI_USERNAME == "" || WIFI_PASSWORD == "") {
-    Serial.println("Invalid username or password for wifi connection.");
-  }
+  lcd.begin(16, 2);
 
-  WiFi.begin(WIFI_USERNAME, WIFI_PASSWORD);
+  Serial.println("Version 1");
+  WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.println("Connecting to WiFi...");
   }
   Serial.printf("Connected to WiFi with IP Address: %s\n", WiFi.localIP().toString().c_str());
 
@@ -58,31 +61,68 @@ void launchServer(int port) {
       delay(1000);
     }
   }
-  Serial.println("mDNS started.");
+  Serial.println("mDNS started. Access with http://esp32.local");
 
-  // Endpoint for power switch status
-  server.on("/power", HTTP_GET, [](AsyncWebServerRequest* request) {
-    int powerRead = digitalRead(POWER_SWITCH_PIN);
-    checkButtonStatus(powerRead, powerOn, powerState, lastPowerState, debounceDelay, lastPowerDebounceTime);
-    request->send(200, "text/plain", String(powerOn));
-  });
-
-  // Endpoint for temperature1 value
   server.on("/temperature1", HTTP_GET, [](AsyncWebServerRequest* request) {
-    int buttonRead = digitalRead(TEMP1_BUTTON_PIN);
-    checkButtonStatus(buttonRead, button1On, button1State, lastButton1State, debounceDelay, lastButton1DebounceTime);
-    int temp = digitalRead(TEMP1_SENSOR_PIN);
-    request->send(200, "text/plain", String(calculateTemperature(button1On, temp)));
+    Serial.println("Received request for temperature 1.");
+    String newUnit = unit;
+    if (request->hasParam("unit")) {
+      newUnit = request->getParam("unit")->value();
+    }
+    temp1 = convertTemperature(temp1, unit, newUnit);
+    unit = newUnit;
+    request->send(200, "text/plain", String(temp1));
   });
 
-
-  // Endpoint for temperature2 value
   server.on("/temperature2", HTTP_GET, [](AsyncWebServerRequest* request) {
-    int buttonRead = digitalRead(TEMP2_BUTTON_PIN);
-    checkButtonStatus(buttonRead, button2On, button2State, lastButton2State, debounceDelay, lastButton2DebounceTime);
-    int temp = digitalRead(TEMP2_SENSOR_PIN);
-    request->send(200, "text/plain", String(calculateTemperature(button2On, temp)));
+    Serial.println("Received request for temperature 2.");
+    String newUnit = unit;
+    if (request->hasParam("unit")) {
+      newUnit = request->getParam("unit")->value();
+    }
+    temp2 = convertTemperature(temp2, unit, newUnit);
+    unit = newUnit;
+    request->send(200, "text/plain", String(temp2));
   });
 
   server.begin();
+  Serial.println("Server started.");
+}
+
+void loop() {
+  checkButtonStatus(digitalRead(TEMP1_BUTTON_PIN), button1On, button1State, lastButton1State, debounceDelay, lastButton1DebounceTime);
+  if (button1On) {
+      temp1 = getTemperature(sensor1, unit);
+  }
+  else {
+    temp1 = -1000.00; // set to -1000 to indicate button is off
+  }
+
+  checkButtonStatus(digitalRead(TEMP2_BUTTON_PIN), button2On, button2State, lastButton2State, debounceDelay, lastButton2DebounceTime);
+  if (button2On) {
+      temp2 = getTemperature(sensor2, unit);
+  }
+  else {
+    temp2 = -1000.00; // set to -1000 to indicate button is off
+  }
+
+  lcd.clear();
+  lcd.setCursor(1, 0);
+  if (temp1 != -1000.00) {
+    lcd.print("Sensor 1: ");
+    lcd.print(getTemperature(sensor1, unit));
+    lcd.print(unit);
+  }
+  else {
+    lcd.print("Sensor 1 OFF");
+  }
+  lcd.setCursor(1, 1);
+  if (temp2 != -1000.00) {
+    lcd.print("Sensor 2: ");
+    lcd.print(getTemperature(sensor2, unit));
+    lcd.print(unit);
+  }
+  else {
+    lcd.print("Sensor 2 OFF");
+  }
 }

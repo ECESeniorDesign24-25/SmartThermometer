@@ -49,7 +49,6 @@ void setup() {
   Serial.begin(115200);
   lcd.begin(16, 2);
 
-  Serial.println("Version 1");
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -84,6 +83,16 @@ void setup() {
     temp2 = convertTemperature(temp2, unit, newUnit);
     unit = newUnit;
     request->send(200, "text/plain", temp2);
+  });
+
+  server.on("/toggle1", HTTP_POST, [](AsyncWebServerRequest* request) {
+    button1On = !button1On;
+    request->send(200, "text/plain", "Button 1 toggled.");
+  });
+
+  server.on("/toggle2", HTTP_POST, [](AsyncWebServerRequest* request) {
+    button2On = !button2On;
+    request->send(200, "text/plain", "Button 2 toggled.");
   });
 
   server.begin();

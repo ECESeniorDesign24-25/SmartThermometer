@@ -1,21 +1,24 @@
 import requests
-from Constants import ESP32_IP
+from Constants import TEMP1_CHANNEL, TEMP2_CHANNEL, TEMP1_BUTTON_CHANNEL, TEMP2_BUTTON_CHANNEL
 
 
-def PollTemperatureFromESP():
+def PollTemperatureFromESP(sensorNumber: int):
     """
     Polls the current temperature from the ESP32 web server
     """
-    while True:
-        try:
-            response = requests.get(ESP32_IP, data={"temperature": "1"})
-            if response.status_code == 200:
-                return response.text
-            else:
-                return None
-        except requests.exceptions.RequestException as e:
-            print(f"Error polling temperature: {e}")
+    try:
+        if sensorNumber == 1:
+            url = TEMP1_CHANNEL
+        elif sensorNumber == 2:
+            url = TEMP2_CHANNEL
+        else:
             return None
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        temperature = float(response.text.split()[0])
+        return temperature
+    except requests.exceptions.RequestException as e:
+        return None
 
 
 def ToggleSensorOnESP(sensorNumber: int, toggle: int):
@@ -24,43 +27,16 @@ def ToggleSensorOnESP(sensorNumber: int, toggle: int):
     on/off
     """
     try:
-        message = requests.post(
-            ESP32_IP, data={"sensor": sensorNumber, "toggle": toggle}
-        )
+        if sensorNumber == 1:
+            url = TEMP1_BUTTON_CHANNEL
+        elif sensorNumber == 2:
+            url = TEMP2_BUTTON_CHANNEL
+        else:
+            return False
+        message = requests.post(url, data=toggle, timeout=5)
         if message.status_code == 200:
             return True
         else:
             return False
     except requests.exceptions.RequestException as e:
-        print(f"Error toggling sensor: {e}")
         return False
-
-
-def GetSensorStatusFromESP(sensorNumber: int):
-    """
-    Polls the ESP web server for the status of a given sensor
-    """
-    try:
-        response = requests.get(ESP32_IP, data={"sensor": sensorNumber})
-        if response.status_code == 200:
-            return response.text
-        else:
-            return None
-    except requests.exceptions.RequestException as e:
-        print(f"Error polling sensor status: {e}")
-        return None
-
-
-def GetESPStatus():
-    """
-    Polls the ESP for the status of the on/off power switch
-    """
-    try:
-        response = requests.get(ESP32_IP, data={"status": "1"})
-        if response.status_code == 200:
-            return response.text
-        else:
-            return None
-    except requests.exceptions.RequestException as e:
-        print(f"Error polling ESP status: {e}")
-        return None

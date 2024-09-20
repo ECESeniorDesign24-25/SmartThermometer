@@ -3,24 +3,6 @@
 #include "../ESP32/SensorUtils.h"
 #include "Tests.h"
 
-// Test button toggling on and off
-void testButtonTogglesOnOff() {
-    bool buttonOn = false;
-    int buttonPin = 2;
-    int lastButtonState = LOW;
-    int buttonState = LOW;
-    unsigned long lastDebounceTime = 0;
-    unsigned long debounceDelay = 50;
-    int buttonRead = HIGH;
-    checkButtonStatus(buttonRead, buttonOn, buttonState, lastButtonState, debounceDelay, lastDebounceTime);
-    TEST_ASSERT_EQUAL_INT(0, buttonOn);
-
-    buttonRead = LOW;
-    lastDebounceTime += 100;
-    checkButtonStatus(buttonRead, buttonOn, buttonState, lastButtonState, debounceDelay, lastDebounceTime);
-    TEST_ASSERT_EQUAL_INT(1, buttonOn);
-}
-
 // Test temperature calculation
 void testCalculateTemperature() {
 

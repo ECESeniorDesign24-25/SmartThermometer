@@ -10,36 +10,24 @@ def Start():
     Main loop
     """
     receiver = Receiver(EMAIL_ADDRESS, "6087974248", "VERIZON")
-    emailResult = SendEmail(
-        receiver, "Temperature Monitor Started", "Temperature monitor has started"
-    )
-    smsResult = SendSMS(receiver, "Temperature monitor has started")
 
-    if emailResult:
-        print("Email sent")
-    else:
-        print("Email failed to send")
-
-    if smsResult:
-        print("SMS sent")
-    else:
-        print("SMS failed to send")
+    while True:
+        temperature = ProcessTemperature(receiver)
 
 
-def ProcessTemperature(receiver: Receiver, message: str):
+def ProcessTemperature(receiver: Receiver):
     """
     Polls the temperature from the ESP32, and sends an email and SMS if the temperature exceeds MAX_TEMPERATURE
     """
     temperature = PollTemperatureFromESP()
     if temperature is not None:
         if temperature > MAX_TEMPERATURE:
-            SendEmail(receiver.emailAddress, "High Temperature Alert", message)
-            SendSMS(receiver.phoneNumber, receiver.cellCarrier, message)
+            SendEmail(receiver.emailAddress, "High Temperature Alert", f"Temperature is too high: {temperature}")
+            SendSMS(receiver.phoneNumber, receiver.cellCarrier, f"Temperature is too high: {temperature}")
         elif temperature < MIN_TEMPERATURE:
-            SendEmail(receiver.emailAddress, "Low Temperature Alert", message)
-            SendSMS(receiver.phoneNumber, receiver.cellCarrier, message)
-    else:
-        print("Error polling temperature")
+            SendEmail(receiver.emailAddress, "Low Temperature Alert", f"Temperature is too low: {temperature}")
+            SendSMS(receiver.phoneNumber, receiver.cellCarrier, f"Temperature is too low: {temperature}")
+    return temperature
 
 
 if __name__ == "__main__":

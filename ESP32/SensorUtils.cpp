@@ -35,3 +35,34 @@ float calculateTemperature(bool buttonStatus, int temp) {
     }
     return temp;
 }
+
+float getTemperature(DallasTemperature sensor, String unit) {
+  sensor.requestTemperatures();
+  float temperature;
+  if (unit.equalsIgnoreCase("f")) {
+    temperature = sensor.getTempFByIndex(0);
+    if (temperature == DEVICE_DISCONNECTED_F) {
+      temperature = -460.00; // Absolute zero to say that it is disconnected
+    }
+  }
+  else {
+    sensor.requestTemperatures();
+    temperature = sensor.getTempCByIndex(0);
+    if (temperature == DEVICE_DISCONNECTED_C) {
+      temperature = -274.00; // Absolute zero to say that it is disconnected
+    }
+  }
+  return temperature;
+}
+
+float convertTemperature(float temperature, String oldUnit, String newUnit) {
+  if (oldUnit.equalsIgnoreCase(newUnit)) {
+    return temperature;
+  }
+  else if (oldUnit.equalsIgnoreCase("c")) {
+    return 32 + (temperature * 1.8);
+  }
+  else {
+    return (temperature - 32) / 1.8;
+  }
+}

@@ -1,12 +1,12 @@
-#define WIFI_USERNAME ""
-#define WIFI_PASSWORD ""
+#define WIFI_USERNAME "NETGEAR79"
+#define WIFI_PASSWORD "408JsgIowa"
 #define SERVER_HOSTNAME "esp32.local"
 
 // #define POWER_SWITCH_PIN 13
 #define TEMP1_BUTTON_PIN 25
 #define TEMP2_BUTTON_PIN 33
-#define TEMP1_SENSOR_PIN 26
-// #define TEMP2_SENSOR_PIN 33
+#define TEMP1_SENSOR_PIN 32
+#define TEMP2_SENSOR_PIN 26
 
 #define RS 16
 #define ENABLE 17

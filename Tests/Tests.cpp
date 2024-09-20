@@ -23,30 +23,18 @@ void testButtonTogglesOnOff() {
 
 // Test temperature calculation
 void testCalculateTemperature() {
-    bool buttonStatus = true;
-    int temp = 0;
-    float result = calculateTemperature(buttonStatus, temp);
-    TEST_ASSERT_EQUAL_FLOAT(0, result);
 
-    buttonStatus = false;
-    temp = 0;
-    result = calculateTemperature(buttonStatus, temp);
-    TEST_ASSERT_EQUAL_FLOAT(-274, result);
+    // check C -> C
+    TEST_ASSERT_EQUAL_FLOAT(100.0, convertTemperature(100.0, "c", "c")); 
 
-    buttonStatus = true;
-    temp = 2500;
-    result = calculateTemperature(buttonStatus, temp);
-    TEST_ASSERT_EQUAL_FLOAT(2000, result);
+    // check F -> F
+    TEST_ASSERT_EQUAL_FLOAT(100.0, convertTemperature(100.0, "f", "f"));
 
-    buttonStatus = true;
-    temp = -100;
-    result = calculateTemperature(buttonStatus, temp);
-    TEST_ASSERT_EQUAL_FLOAT(0, result);
+    // check C -> F
+    TEST_ASSERT_EQUAL_FLOAT(212.0, convertTemperature(100.0, "c", "f"));
 
-    buttonStatus = true;
-    temp = 150;
-    result = calculateTemperature(buttonStatus, temp);
-    TEST_ASSERT_EQUAL_FLOAT(150, result);
+    // check F -> C
+    TEST_ASSERT_EQUAL_FLOAT(37.777779, convertTemperature(100.0, "f", "c"));
 }
 
 

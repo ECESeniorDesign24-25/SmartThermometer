@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <ESPmDNS.h>
+#include <string>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <LiquidCrystal.h>
@@ -37,7 +38,7 @@ AsyncWebServer server(80);
 
 LiquidCrystal lcd(RS, ENABLE, D4, D5, D6, D7);
 
-String unit = "C";
+std::string unit = "C";
 
 void setup() {
   pinMode(TEMP1_BUTTON_PIN, INPUT_PULLUP);
@@ -65,24 +66,24 @@ void setup() {
 
   server.on("/temperature1", HTTP_GET, [](AsyncWebServerRequest* request) {
     Serial.println("Received request for temperature 1.");
-    String newUnit = unit;
+    std::string newUnit = unit;
     if (request->hasParam("unit")) {
       newUnit = request->getParam("unit")->value();
     }
     temp1 = convertTemperature(temp1, unit, newUnit);
     unit = newUnit;
-    request->send(200, "text/plain", String(temp1));
+    request->send(200, "text/plain", temp1);
   });
 
   server.on("/temperature2", HTTP_GET, [](AsyncWebServerRequest* request) {
     Serial.println("Received request for temperature 2.");
-    String newUnit = unit;
+    std::string newUnit = unit;
     if (request->hasParam("unit")) {
       newUnit = request->getParam("unit")->value();
     }
     temp2 = convertTemperature(temp2, unit, newUnit);
     unit = newUnit;
-    request->send(200, "text/plain", String(temp2));
+    request->send(200, "text/plain", temp2);
   });
 
   server.begin();

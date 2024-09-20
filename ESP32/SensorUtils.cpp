@@ -36,7 +36,7 @@ float calculateTemperature(bool buttonStatus, int temp) {
     return temp;
 }
 
-float getTemperature(DallasTemperature sensor, String unit) {
+float getTemperature(DallasTemperature sensor, std::string unit) {
   sensor.requestTemperatures();
   float temperature;
   if (unit == "f") {
@@ -55,7 +55,7 @@ float getTemperature(DallasTemperature sensor, String unit) {
   return temperature;
 }
 
-float convertTemperature(float temperature, String oldUnit, String newUnit) {
+float convertTemperature(float temperature, std::string oldUnit, std::string newUnit) {
   if (oldUnit == newUnit) {
     return temperature;
   }

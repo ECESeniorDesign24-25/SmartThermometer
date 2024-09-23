@@ -8,7 +8,7 @@
 #include "Constants.h"
 
 const char* ssid = WIFI_USERNAME;
-const char* password = WIFI_PASSWORD; 
+const char* password = WIFI_PASSWORD;
 
 float temp1 = 0;
 float temp2 = 0;
@@ -41,10 +41,22 @@ LiquidCrystal lcd(RS, ENABLE, D4, D5, D6, D7);
 std::string unit = "C";
 
 void setup() {
-  pinMode(TEMP1_BUTTON_PIN, INPUT_PULLUP);
-  pinMode(TEMP2_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(TEMP1_BUTTON_PIN, INPUT);
+  pinMode(TEMP2_BUTTON_PIN, INPUT);
   pinMode(TEMP1_SENSOR_PIN, INPUT);
   pinMode(TEMP2_SENSOR_PIN, INPUT);
+
+  // lcd.begin(16, 2);
+  // lcd.setCursor(1, 0);
+  // lcd.print("Sensor 1 OFF");
+  // lcd.setCursor(1, 1);
+  // lcd.print("Sensor 2 OFF");
+
+  sensor1.begin();
+  sensor1.setResolution(11);
+
+  sensor2.begin();
+  sensor2.setResolution(11);
 
   Serial.begin(115200);
   lcd.begin(16, 2);
@@ -67,22 +79,22 @@ void setup() {
     Serial.println("Received request for temperature 1.");
     std::string newUnit = unit;
     if (request->hasParam("unit")) {
-      newUnit = request->getParam("unit")->value();
+      newUnit = request->getParam("unit")->value().c_str();
     }
     temp1 = convertTemperature(temp1, unit, newUnit);
     unit = newUnit;
-    request->send(200, "text/plain", temp1);
+    request->send(200, "text/plain", String(temp1));
   });
 
   server.on("/temperature2", HTTP_GET, [](AsyncWebServerRequest* request) {
     Serial.println("Received request for temperature 2.");
     std::string newUnit = unit;
     if (request->hasParam("unit")) {
-      newUnit = request->getParam("unit")->value();
+      newUnit = request->getParam("unit")->value().c_str();
     }
     temp2 = convertTemperature(temp2, unit, newUnit);
     unit = newUnit;
-    request->send(200, "text/plain", temp2);
+    request->send(200, "text/plain", String(temp2));
   });
 
   server.on("/toggle1", HTTP_POST, [](AsyncWebServerRequest* request) {
@@ -100,39 +112,29 @@ void setup() {
 }
 
 void loop() {
-  checkButtonStatus(digitalRead(TEMP1_BUTTON_PIN), button1On, button1State, lastButton1State, debounceDelay, lastButton1DebounceTime);
-  if (button1On) {
-      temp1 = getTemperature(sensor1, unit);
-  }
-  else {
-    temp1 = -1000.00; // set to -1000 to indicate button is off
-  }
+  // temp1 = getTemperature(sensor1, unit);
+  // temp2 = getTemperature(sensor2, unit);
+  // button1State = digitalRead(TEMP1_BUTTON_PIN);
+  // if (button1State == LOW) {
+  //     lcd.clear();
+  //     lcd.setCursor(1, 0);
+  //     lcd.print("Sensor 1 ON ");
+  //     lcd.print(temp1);
+  //   }
+  // else {
+  //     lcd.setCursor(1, 0);
+  //     lcd.print("Sensor 1 OFF");
+  //   }
 
-  checkButtonStatus(digitalRead(TEMP2_BUTTON_PIN), button2On, button2State, lastButton2State, debounceDelay, lastButton2DebounceTime);
-  if (button2On) {
-      temp2 = getTemperature(sensor2, unit);
-  }
-  else {
-    temp2 = -1000.00; // set to -1000 to indicate button is off
-  }
-
-  lcd.clear();
-  lcd.setCursor(1, 0);
-  if (temp1 != -1000.00) {
-    lcd.print("Sensor 1: ");
-    lcd.print(getTemperature(sensor1, unit));
-    lcd.print(unit);
-  }
-  else {
-    lcd.print("Sensor 1 OFF");
-  }
-  lcd.setCursor(1, 1);
-  if (temp2 != -1000.00) {
-    lcd.print("Sensor 2: ");
-    lcd.print(getTemperature(sensor2, unit));
-    lcd.print(unit);
-  }
-  else {
-    lcd.print("Sensor 2 OFF");
-  }
+  // button2State = digitalRead(TEMP2_BUTTON_PIN);
+  // if (button2State == LOW) {
+  //     lcd.setCursor(1, 1);
+  //     lcd.print("Sensor 2 ON ");
+  //     lcd.print(temp2);
+  //   }
+  // else {
+  //     lcd.setCursor(1, 1);
+  //     lcd.print("Sensor 2 OFF");
+  //   }
+  //checkButtonStatus(digitalRead(TEMP2_BUTTON_PIN), button2On, button2State, lastButton2State, debounceDelay, lastButton2DebounceTime);
 }

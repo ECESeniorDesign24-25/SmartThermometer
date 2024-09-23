@@ -17,5 +17,3 @@
 
 #define MIN_TEMP 0
 #define MAX_TEMP 2000
-
-const int rs = 16, enable = 17, d4 = 18, d5 = 19, d6 = 21, d7 = 22;

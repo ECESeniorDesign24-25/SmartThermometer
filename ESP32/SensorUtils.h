@@ -1,6 +1,6 @@
 #ifndef SENSOR_UTILS_H
 #define SENSOR_UTILS_H
-#include <string>
+#include <cstring>
 
 #ifdef UNIT_TEST
   #include "../lib/ArduinoMock.h" 

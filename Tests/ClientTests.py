@@ -2,7 +2,10 @@ import requests
 import time 
 import os
 
-def test_channel(ip, channel, function, initial=False):
+def test_channel(ip, channel, function, initial=False): 
+    """ 
+    Checks the response time of a GET or POST request to a channel on the ESP32 server
+    """
     host = f"{ip}{channel}?unit=C"
     url = "http://" + host
 
@@ -24,6 +27,9 @@ def test_channel(ip, channel, function, initial=False):
     return time_delta
 
 def test_esp32_server():
+    """
+    Tests that the average time for 10 requests for each channel is less than 1s
+    """
     esp32_ip = "192.168.1.25"
     get_channels = ["/temperature1", "/temperature2"]
     post_channels = ["/toggle1", "/toggle2"]

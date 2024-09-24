@@ -7,16 +7,16 @@
 void testCalculateTemperature() {
 
     // check C -> C
-    TEST_ASSERT_EQUAL_FLOAT(100.0, convertTemperature(100.0, "c", "c")); 
+    TEST_ASSERT_EQUAL_FLOAT(100.0, convertTemperature(100.0, "C", "C")); 
 
     // check F -> F
-    TEST_ASSERT_EQUAL_FLOAT(100.0, convertTemperature(100.0, "f", "f"));
+    TEST_ASSERT_EQUAL_FLOAT(100.0, convertTemperature(100.0, "F", "F"));
 
     // check C -> F
-    TEST_ASSERT_EQUAL_FLOAT(212.0, convertTemperature(100.0, "c", "f"));
+    TEST_ASSERT_EQUAL_FLOAT(212.0, convertTemperature(100.0, "C", "F"));
 
     // check F -> C
-    TEST_ASSERT_EQUAL_FLOAT(37.777779, convertTemperature(100.0, "f", "c"));
+    TEST_ASSERT_EQUAL_FLOAT(37.777779, convertTemperature(100.0, "F", "C"));
 }
 
 

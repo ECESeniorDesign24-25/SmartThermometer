@@ -1,9 +1,10 @@
 import requests
-import time 
+import time
 import os
 
-def test_channel(ip, channel, function, initial=False): 
-    """ 
+
+def test_channel(ip, channel, function, initial=False):
+    """
     Checks the response time of a GET or POST request to a channel on the ESP32 server
     """
     host = f"{ip}{channel}?unit=C"
@@ -21,10 +22,11 @@ def test_channel(ip, channel, function, initial=False):
     time_delta = round(end - start, 3)
 
     if initial:
-        print(f"Channel: {channel} | Response Code: {response} | Time: {time_delta}s" )
+        print(f"Channel: {channel} | Response Code: {response} | Time: {time_delta}s")
     assert response.status_code == 200
     assert time_delta < 1
     return time_delta
+
 
 def test_esp32_server():
     """
@@ -51,6 +53,7 @@ def test_esp32_server():
     avg_time = sum(times) / len(times)
     print(f"\nAverage time for 10 requests for each channel: {avg_time}s")
     assert avg_time < 1
+
 
 if __name__ == "__main__":
     test_esp32_server()

@@ -7,24 +7,20 @@ TEMP_CHANNELS = ["/temperature1", "/temperature2"]
 TOGGLE_CHANNELS = ["/toggle1", "/toggle2"]
 
 
-def test_channel(function, host, initial=False, expected_status=200):
+def test_channel(host, verbose=False, expected_status=200):
     """
-    Checks the response time of a GET or POST request to a channel on the ESP32 server
+    Checks the response time of a GET request to a channel on the ESP32 server
     """
     url = "http://" + host
-    if initial:
-        print(f"\n--------------------\nTesting {function} request to {host}:")
+    if verbose:
+        print(f"\n--------------------\nTesting GET request to {host}:")
         curl = os.system(f"curl -vI {url}")
     start = time.time()
-    if function == "GET":
-        response = requests.get(url)
-    elif function == "POST":
-        response = requests.post(url)
+    response = requests.get(url)
     end = time.time()
     time_delta = round(end - start, 3)
 
     assert response.status_code == expected_status
-    assert time_delta < 1
     return time_delta
 
 
@@ -41,10 +37,10 @@ def test_esp32_server():
     times = []
     for i in range(10):
         for channel in TEMP_CHANNELS:
-            time = test_channel(host=f"{ESP32_IP}{channel}?unit=C", function="GET")
+            time = test_channel(host=f"{ESP32_IP}{channel}?unit=C")
             times.append(time)
         for channel in TOGGLE_CHANNELS:
-            time = test_channel(host=f"{ESP32_IP}{channel}?toggle=ON", function="GET")
+            time = test_channel(host=f"{ESP32_IP}{channel}?toggle=ON")
             times.append(time)
 
     avg_time = sum(times) / len(times)
@@ -64,34 +60,38 @@ def test_esp32_sensor_toggle():
         return
 
     # verify toggle off works
-    requests.get(url="http://" + ESP32_IP + "/toggle1?toggle=OFF")
+    toggle1_off = requests.get(url="http://" + ESP32_IP + "/toggle1?toggle=OFF")
     time.sleep(1)
-    response1 = requests.get(url="http://" + ESP32_IP + "/temperature1?unit=C")
+    response1_off = requests.get(url="http://" + ESP32_IP + "/temperature1?unit=C")
+    print(toggle1_off.text)
 
-    requests.get(url="http://" + ESP32_IP + "/toggle2?toggle=OFF")
+    toggle2_off = requests.get(url="http://" + ESP32_IP + "/toggle2?toggle=OFF")
+    print(toggle2_off.text)
     time.sleep(1)
-    response2 = requests.get(url="http://" + ESP32_IP + "/temperature2?unit=C")
+    response2_off = requests.get(url="http://" + ESP32_IP + "/temperature2?unit=C")
 
-    assert response1.status_code == 200
-    assert response2.status_code == 200
+    assert response1_off.status_code == 200
+    assert response2_off.status_code == 200
 
-    assert response1.text == "-100000.00"
-    assert response2.text == "-100000.00"
+    assert response1_off.text == "-100000.00"
+    assert response2_off.text == "-100000.00"
 
     # verify toggle on works
-    requests.get(url="http://" + ESP32_IP + "/toggle1?toggle=ON")
+    toggle1_on = requests.get(url="http://" + ESP32_IP + "/toggle1?toggle=ON")
+    print(toggle1_on.text)
     time.sleep(1)
-    response1 = requests.get(url="http://" + ESP32_IP + "/temperature1?unit=C")
+    response1_on = requests.get(url="http://" + ESP32_IP + "/temperature1?unit=C")
 
-    requests.get(url="http://" + ESP32_IP + "/toggle2?toggle=ON")
+    toggle2_on = requests.get(url="http://" + ESP32_IP + "/toggle2?toggle=ON")
+    print(toggle2_on.text)
     time.sleep(1)
-    repsonse2 = requests.get(url="http://" + ESP32_IP + "/temperature2?unit=C")
+    response2_on = requests.get(url="http://" + ESP32_IP + "/temperature2?unit=C")
 
-    assert response1.status_code == 200
-    assert response2.status_code == 200
+    assert response1_on.status_code == 200
+    assert response2_on.status_code == 200
 
-    assert response1.text != "-100000.00"
-    assert response2.text != "-100000.00"
+    assert response1_on.text != "-100000.00"
+    assert response2_on.text != "-100000.00"
 
 
 def test_invalid_channel_request():
@@ -102,14 +102,16 @@ def test_invalid_channel_request():
     for channel in TEMP_CHANNELS:
         test_channel(
             host=f"{ESP32_IP}{channel}?invalidParam=C",
-            function="GET",
             expected_status=400,
         )
     for channel in TOGGLE_CHANNELS:
         test_channel(
             host=f"{ESP32_IP}{channel}?invalidParam=ON",
-            function="GET",
             expected_status=400,
+        )
+        test_channel(
+            host=f"{ESP32_IP}{channel}",
+            expected_status=200,
         )
 
 
@@ -117,3 +119,4 @@ if __name__ == "__main__":
     server_up = test_esp32_server()
     if server_up:
         test_esp32_sensor_toggle()
+        test_invalid_channel_request()

@@ -32,7 +32,7 @@ def ProcessTemperature(receiver: Receiver):
                 receiver.cellCarrier,
                 f"Temperature is too high: {temperature}",
             )
-        elif temperature < MIN_TEMPERATURE:
+        elif temperature < MIN_TEMPERATURE and temperature != OFF_TEMPERATURE:
             SendEmail(
                 receiver.emailAddress,
                 "Low Temperature Alert",

@@ -74,9 +74,19 @@ void setup() {
 
       // if we have a valid unit, convert temp
       if (newUnit == "C" || newUnit == "F") {
-        temp1 = convertTemperature(temp1, unit, newUnit.c_str());
-        strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
-        unit[sizeof(unit) - 1] = '\0';
+
+        // check enabled
+        if (temp1Enabled) {
+          if (temp1 == -100000.00) {
+            temp1 = getTemperature(sensor1, unit);
+          }
+          temp1 = convertTemperature(temp1, unit, newUnit.c_str());
+          strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
+          unit[sizeof(unit) - 1] = '\0';
+        }
+        else {
+          temp1 = -100000.0;
+        }
       }
       request->send(200, "text/plain", String(temp1));
     }
@@ -92,9 +102,20 @@ void setup() {
 
       // if we have a valid unit, convert temp
       if (newUnit == "C" || newUnit == "F") {
-        temp2 = convertTemperature(temp2, unit, newUnit.c_str());
-        strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
-        unit[sizeof(unit) - 1] = '\0';  
+
+        // check enabled
+        if (temp2Enabled) {
+          if (temp2 == -100000.00) {
+            temp2 = getTemperature(sensor1, unit);
+          }
+
+          temp2 = convertTemperature(temp2, unit, newUnit.c_str());
+          strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
+          unit[sizeof(unit) - 1] = '\0';  
+        } 
+        else {
+          temp2 = -100000.00;
+        }
       }
       request->send(200, "text/plain", String(temp2));
     }
@@ -115,6 +136,16 @@ void setup() {
         temp1Enabled = false;
       }
       request->send(200, "text/plain", "Sensor 1 toggled: " + toggle);
+
+      // recompute
+      temp1 = getTemperature(sensor1, unit);
+    }
+    else if (request->params() == 0) {
+      String responseString = "OFF";
+      if (temp1Enabled) {
+        responseString = "ON";
+      }
+      request->send(200, "text/plain", responseString);    
     }
     else {
       request->send(400, "text/plain", "Invalid parameters.");
@@ -133,6 +164,16 @@ void setup() {
         temp2Enabled = false;
       }
       request->send(200, "text/plain", "Sensor 2 toggled: " + toggle);
+
+      // recompute 
+      temp2 = getTemperature(sensor2, unit);
+    }
+    else if (request->params() == 0) {
+      String responseString = "OFF";
+      if (temp2Enabled) {
+        responseString = "ON";
+      }
+      request->send(200, "text/plain", responseString);    
     }
     else {
       request->send(400, "text/plain", "Invalid parameters.");

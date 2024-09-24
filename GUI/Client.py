@@ -22,11 +22,27 @@ def ProcessTemperature(receiver: Receiver):
     temperature = PollTemperatureFromESP()
     if temperature is not None:
         if temperature > MAX_TEMPERATURE:
-            SendEmail(receiver.emailAddress, "High Temperature Alert", f"Temperature is too high: {temperature}")
-            SendSMS(receiver.phoneNumber, receiver.cellCarrier, f"Temperature is too high: {temperature}")
+            SendEmail(
+                receiver.emailAddress,
+                "High Temperature Alert",
+                f"Temperature is too high: {temperature}",
+            )
+            SendSMS(
+                receiver.phoneNumber,
+                receiver.cellCarrier,
+                f"Temperature is too high: {temperature}",
+            )
         elif temperature < MIN_TEMPERATURE:
-            SendEmail(receiver.emailAddress, "Low Temperature Alert", f"Temperature is too low: {temperature}")
-            SendSMS(receiver.phoneNumber, receiver.cellCarrier, f"Temperature is too low: {temperature}")
+            SendEmail(
+                receiver.emailAddress,
+                "Low Temperature Alert",
+                f"Temperature is too low: {temperature}",
+            )
+            SendSMS(
+                receiver.phoneNumber,
+                receiver.cellCarrier,
+                f"Temperature is too low: {temperature}",
+            )
     return temperature
 
 

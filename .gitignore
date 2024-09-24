@@ -8,6 +8,8 @@ venv/*
 # incase test doesnt remove executable
 Tests/testRunner
 
+ESP32/libraries/
+
 .dll
 
 # Fortran module files

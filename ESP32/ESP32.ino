@@ -7,11 +7,12 @@
 #include "SensorUtils.h"
 #include "Constants.h"
 
-const char* ssid = WIFI_USERNAME;
-const char* password = WIFI_PASSWORD; 
+const char* ssid PROGMEM = WIFI_USERNAME;
+const char* password PROGMEM = WIFI_PASSWORD;
 
-float temp1 = 0;
-float temp2 = 0;
+float temp1 = 0.0;
+float temp2 = 0.0;
+char unit[2] = "C"; // default to celsius, make length 2 so we can null terminate
 
 bool button1On = false;
 bool button2On = false;
@@ -35,21 +36,24 @@ DallasTemperature sensor1(&oneWire1);
 DallasTemperature sensor2(&oneWire2);
 
 AsyncWebServer server(80);
-
 LiquidCrystal lcd(RS, ENABLE, D4, D5, D6, D7);
 
-std::string unit = "C";
-
 void setup() {
-  pinMode(TEMP1_BUTTON_PIN, INPUT_PULLUP);
-  pinMode(TEMP2_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(TEMP1_BUTTON_PIN, INPUT);
+  pinMode(TEMP2_BUTTON_PIN, INPUT);
   pinMode(TEMP1_SENSOR_PIN, INPUT);
   pinMode(TEMP2_SENSOR_PIN, INPUT);
 
-  Serial.begin(115200);
-  lcd.begin(16, 2);
+  sensor1.begin();
+  sensor1.setResolution(9); // use lowest precision for faster measurements
 
+  sensor2.begin();
+  sensor2.setResolution(9);
+
+  Serial.begin(115200);
+  Serial.println("Initialized serial.");
   WiFi.begin(ssid, password);
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
@@ -65,24 +69,32 @@ void setup() {
 
   server.on("/temperature1", HTTP_GET, [](AsyncWebServerRequest* request) {
     Serial.println("Received request for temperature 1.");
-    std::string newUnit = unit;
     if (request->hasParam("unit")) {
-      newUnit = request->getParam("unit")->value();
+      String newUnit = request->getParam("unit")->value();
+
+      // if we have a valid unit, convert temp
+      if (newUnit == "C" || newUnit == "F") {
+        temp1 = convertTemperature(temp1, unit, newUnit.c_str());
+        strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
+        unit[sizeof(unit) - 1] = '\0';
+      }
     }
-    temp1 = convertTemperature(temp1, unit, newUnit);
-    unit = newUnit;
-    request->send(200, "text/plain", temp1);
+    request->send(200, "text/plain", String(temp1));
   });
 
   server.on("/temperature2", HTTP_GET, [](AsyncWebServerRequest* request) {
     Serial.println("Received request for temperature 2.");
-    std::string newUnit = unit;
     if (request->hasParam("unit")) {
-      newUnit = request->getParam("unit")->value();
+      String newUnit = request->getParam("unit")->value();
+
+      // if we have a valid unit, convert temp
+      if (newUnit == "C" || newUnit == "F") {
+        temp2 = convertTemperature(temp2, unit, newUnit.c_str());
+        strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
+        unit[sizeof(unit) - 1] = '\0';  
+      }
     }
-    temp2 = convertTemperature(temp2, unit, newUnit);
-    unit = newUnit;
-    request->send(200, "text/plain", temp2);
+    request->send(200, "text/plain", String(temp2));
   });
 
   server.on("/toggle1", HTTP_POST, [](AsyncWebServerRequest* request) {
@@ -97,42 +109,30 @@ void setup() {
 
   server.begin();
   Serial.println("Server started.");
+
+  lcd.begin(16, 2);
+  pinMode(TEMP1_BUTTON_PIN, INPUT);
+  pinMode(TEMP2_BUTTON_PIN, INPUT);
+  lcd.setCursor(1, 0);
+  lcd.print("Sensor 1 OFF");
+  lcd.setCursor(1, 1);
+  lcd.print("Sensor 2 OFF");
 }
 
 void loop() {
-  checkButtonStatus(digitalRead(TEMP1_BUTTON_PIN), button1On, button1State, lastButton1State, debounceDelay, lastButton1DebounceTime);
-  if (button1On) {
-      temp1 = getTemperature(sensor1, unit);
-  }
-  else {
-    temp1 = -1000.00; // set to -1000 to indicate button is off
-  }
+  temp1 = getTemperature(sensor1, unit);
+  temp2 = getTemperature(sensor2, unit);
 
-  checkButtonStatus(digitalRead(TEMP2_BUTTON_PIN), button2On, button2State, lastButton2State, debounceDelay, lastButton2DebounceTime);
-  if (button2On) {
-      temp2 = getTemperature(sensor2, unit);
-  }
-  else {
-    temp2 = -1000.00; // set to -1000 to indicate button is off
-  }
+  unsigned long currentTime = millis();
+  unsigned long seconds = currentTime / 1000;
+  unsigned long minutes = seconds / 60;
+  unsigned long hours = minutes / 60;
+  seconds = seconds % 60;
+  minutes = minutes % 60;
 
-  lcd.clear();
-  lcd.setCursor(1, 0);
-  if (temp1 != -1000.00) {
-    lcd.print("Sensor 1: ");
-    lcd.print(getTemperature(sensor1, unit));
-    lcd.print(unit);
-  }
-  else {
-    lcd.print("Sensor 1 OFF");
-  }
-  lcd.setCursor(1, 1);
-  if (temp2 != -1000.00) {
-    lcd.print("Sensor 2: ");
-    lcd.print(getTemperature(sensor2, unit));
-    lcd.print(unit);
-  }
-  else {
-    lcd.print("Sensor 2 OFF");
-  }
+  Serial.printf("Time: %02lu:%02lu:%02lu | ", hours, minutes, seconds);
+  Serial.printf("Temp1: %.2f | ", temp1);
+  Serial.printf("Temp2: %.2f | ", temp2);
+  Serial.printf("Unit: %s\n", unit);
+  delay(100);
 }

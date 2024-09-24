@@ -1,5 +1,10 @@
 import requests
-from Constants import TEMP1_CHANNEL, TEMP2_CHANNEL, TEMP1_BUTTON_CHANNEL, TEMP2_BUTTON_CHANNEL
+from Constants import (
+    TEMP1_CHANNEL,
+    TEMP2_CHANNEL,
+    TEMP1_BUTTON_CHANNEL,
+    TEMP2_BUTTON_CHANNEL,
+)
 
 
 def PollTemperatureFromESP(sensorNumber: int):

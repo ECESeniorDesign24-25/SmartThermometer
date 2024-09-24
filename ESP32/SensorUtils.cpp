@@ -36,10 +36,10 @@ float calculateTemperature(bool buttonStatus, int temp) {
     return temp;
 }
 
-float getTemperature(DallasTemperature sensor, std::string unit) {
+float getTemperature(DallasTemperature sensor, const char* unit) {
   sensor.requestTemperatures();
   float temperature;
-  if (unit == "f") {
+  if (strcmp(unit, "F") == 0) {
     temperature = sensor.getTempFByIndex(0);
     if (temperature == DEVICE_DISCONNECTED_F) {
       temperature = -460.00; // Absolute zero to say that it is disconnected
@@ -52,17 +52,16 @@ float getTemperature(DallasTemperature sensor, std::string unit) {
       temperature = -274.00; // Absolute zero to say that it is disconnected
     }
   }
+  delay(50);
   return temperature;
 }
 
-float convertTemperature(float temperature, std::string oldUnit, std::string newUnit) {
-  if (oldUnit == newUnit) {
-    return temperature;
-  }
-  else if (oldUnit == "c") {
-    return 32 + (temperature * 1.8);
-  }
-  else {
-    return (temperature - 32) / 1.8;
-  }
+float convertTemperature(float temperature, const char* oldUnit, const char* newUnit) {
+    if (strcmp(oldUnit, newUnit) == 0) {
+        return temperature;
+    } else if (strcmp(oldUnit, "C") == 0) {
+        return 32 + (temperature * 1.8);
+    } else {
+        return (temperature - 32) / 1.8;
+    }
 }

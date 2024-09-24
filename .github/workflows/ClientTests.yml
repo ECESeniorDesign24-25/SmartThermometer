@@ -1,4 +1,4 @@
-name: Run ESP Tests
+name: Run Client Tests
 
 on:
   pull_request:
@@ -14,10 +14,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up permissions
-        run: chmod +x Tests/run_esp_tests.sh
+        run: chmod +x Tests/run_client_tests.sh
 
       - name: Run test script
-        run: ./Tests/run_esp_tests.sh
+        run: ./Tests/run_client_tests.sh
 
       - name: Check test result
         if: failure()

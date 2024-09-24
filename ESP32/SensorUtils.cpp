@@ -1,23 +1,27 @@
 #include "SensorUtils.h"
 #include "Constants.h"
 
-void checkButtonStatus(int buttonRead, bool& buttonOn, int& buttonState, int& lastButtonState, int debounceDelay, unsigned long& lastDebounceTime) {
-    // Check if the button state has changed
-    if (buttonRead != lastButtonState) {
-        lastDebounceTime = millis(); 
-    }
+void updateSensorStatus(int buttonPin, int& buttonState, int& lastButtonState, unsigned long& lastDebounceTime, bool& sensorStatus) {
+  int buttonRead = digitalRead(buttonPin);
 
-    if ((millis() - lastDebounceTime) > debounceDelay) {
-        if (buttonRead != buttonState) {
-            buttonState = buttonRead;
-
-            // If the new button state is high toggle the button on/off state
-            if (buttonState == HIGH) {
-                buttonOn = !buttonOn; 
-            }
-        }
+  if (buttonRead != lastButtonState) {
+    lastDebounceTime = millis();
   }
 
+  // debounce
+  if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY) {
+    // update state
+    if (buttonRead != buttonState) {
+      buttonState = buttonRead;
+
+      // toggle if high
+      if (buttonState == HIGH) {
+        sensorStatus = !sensorStatus;
+      }
+    }
+  }
+  
+  // update state
   lastButtonState = buttonRead;
 }
 
@@ -42,14 +46,14 @@ float getTemperature(DallasTemperature sensor, const char* unit) {
   if (strcmp(unit, "F") == 0) {
     temperature = sensor.getTempFByIndex(0);
     if (temperature == DEVICE_DISCONNECTED_F) {
-      temperature = -460.00; // Absolute zero to say that it is disconnected
+      temperature = -274.00;
     }
   }
   else {
     sensor.requestTemperatures();
     temperature = sensor.getTempCByIndex(0);
     if (temperature == DEVICE_DISCONNECTED_C) {
-      temperature = -274.00; // Absolute zero to say that it is disconnected
+      temperature = -274.00;
     }
   }
   delay(50);
@@ -59,6 +63,8 @@ float getTemperature(DallasTemperature sensor, const char* unit) {
 float convertTemperature(float temperature, const char* oldUnit, const char* newUnit) {
     if (strcmp(oldUnit, newUnit) == 0) {
         return temperature;
+    } else if ((temperature == -100000.0) || (temperature == -274.0)) {
+      return temperature;
     } else if (strcmp(oldUnit, "C") == 0) {
         return 32 + (temperature * 1.8);
     } else {

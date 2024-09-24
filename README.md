@@ -49,7 +49,7 @@ git update-index --assume-unchanged set_creds.sh
 ```
 
 
-#### Testing:
+### Testing:
 The Tests/ directory handles the automated testing suite for various functions across the source code. 
 
 To test ESP functions, add a test to the ESPTests.cpp file. Note: if you test a function that depends on an Arduino library, you must add a Mock library to the lib/ directory (See ArduinoMock.cpp).
@@ -57,3 +57,14 @@ To test ESP functions, add a test to the ESPTests.cpp file. Note: if you test a 
 To test Client functions, add a test to the ClientTests.py file. Note: any test that depends on reading from the ESP32 server should skip if the ESP32 is not connected.
 
 All tests are run through run_tests.sh, which gets called in a GitHub Actions script on each new PR.
+
+### How to talk to the server:
+You can make HTTP requests to http://192.168.1.25 (faster) or http://esp32.local (slower). The available channels are:
+1. /temperature1 (returns temperature from temperature sensor #1 on GET, supports parameter "unit" [C or F])
+2. /temperature2 (returns temperature from temperature sensor #2 on GET, supports parameter "unit" [C or F])
+3. /toggle1 (sets temperature sensor #1 status on GET, supports parameter "toggle" [ON or OFF])
+4. /toggle2 (sets temperature sensor #2 status on GET, supports parameter "toggle" [ON or OFF])
+
+>Example:
+> curl -X GET http://192.168.1.25/temperature1?unit=C
+> curl -X GET http://192.168.1.25/toggle1?toggle=ON

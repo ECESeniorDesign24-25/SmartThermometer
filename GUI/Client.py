@@ -12,14 +12,14 @@ def Start():
     receiver = Receiver(EMAIL_ADDRESS, "6087974248", "VERIZON")
 
     while True:
-        temperature = ProcessTemperature(receiver)
+        temperature1 = ProcessTemperature(receiver=receiver, sensor=1, unit="C")
+        temperature2 = ProcessTemperature(receiver=receiver, sensor=2, unit="C")
 
-
-def ProcessTemperature(receiver: Receiver):
+def ProcessTemperature(receiver: Receiver, sensor: int=1, unit: str="C"):
     """
     Polls the temperature from the ESP32, and sends an email and SMS if the temperature exceeds MAX_TEMPERATURE
     """
-    temperature = PollTemperatureFromESP()
+    temperature = PollTemperatureFromESP(sensorNumber=sensor, unit=unit)
     if temperature is not None:
         if temperature > MAX_TEMPERATURE:
             SendEmail(
@@ -32,7 +32,7 @@ def ProcessTemperature(receiver: Receiver):
                 receiver.cellCarrier,
                 f"Temperature is too high: {temperature}",
             )
-        elif temperature < MIN_TEMPERATURE:
+        elif temperature < MIN_TEMPERATURE and temperature != OFF_TEMPERATURE:
             SendEmail(
                 receiver.emailAddress,
                 "Low Temperature Alert",
@@ -43,6 +43,8 @@ def ProcessTemperature(receiver: Receiver):
                 receiver.cellCarrier,
                 f"Temperature is too low: {temperature}",
             )
+    if temperature == OFF_TEMPERATURE:
+        temperature = None
     return temperature
 
 

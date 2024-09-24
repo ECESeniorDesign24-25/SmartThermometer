@@ -6,5 +6,6 @@
 
 unsigned long millis();
 void delay(unsigned long);
+int digitalRead(int);
 
 #endif

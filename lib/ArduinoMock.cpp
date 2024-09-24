@@ -7,3 +7,7 @@ unsigned long millis() {
 void delay(unsigned long) {
     return;
 }
+
+int digitalRead(int) {
+    return 1;
+}

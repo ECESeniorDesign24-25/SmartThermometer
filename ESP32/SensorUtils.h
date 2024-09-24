@@ -5,6 +5,7 @@
   #include "../lib/ArduinoMock.h" 
   #include "../lib/DallasTemperatureMock.h" 
   #include "../lib/OneWireMock.h"
+  #include <cstring>
 #else
   #include <Arduino.h>
   #include <DallasTemperature.h>

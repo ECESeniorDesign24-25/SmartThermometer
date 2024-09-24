@@ -2,11 +2,11 @@
 #define WIFI_PASSWORD "408JsgIowa"
 #define SERVER_HOSTNAME "esp32.local"
 
-// #define POWER_SWITCH_PIN 13
 #define TEMP1_BUTTON_PIN 25
 #define TEMP2_BUTTON_PIN 33
 #define TEMP1_SENSOR_PIN 32
 #define TEMP2_SENSOR_PIN 26
+#define DEBOUNCE_DELAY 50
 
 #define RS 16
 #define ENABLE 17

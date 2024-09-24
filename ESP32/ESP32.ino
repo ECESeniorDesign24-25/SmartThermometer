@@ -14,8 +14,8 @@ float temp1 = 0.0;
 float temp2 = 0.0;
 char unit[2] = "C"; // default to celsius, make length 2 so we can null terminate
 
-bool button1On = false;
-bool button2On = false;
+bool temp1Enabled = true;
+bool temp2Enabled = true;
 
 int button1State = LOW;
 int button2State = LOW;
@@ -78,8 +78,11 @@ void setup() {
         strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
         unit[sizeof(unit) - 1] = '\0';
       }
+      request->send(200, "text/plain", String(temp1));
     }
-    request->send(200, "text/plain", String(temp1));
+    else {
+      request->send(400, "text/plain", "Invalid parameters.");
+    }
   });
 
   server.on("/temperature2", HTTP_GET, [](AsyncWebServerRequest* request) {
@@ -93,18 +96,47 @@ void setup() {
         strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
         unit[sizeof(unit) - 1] = '\0';  
       }
+      request->send(200, "text/plain", String(temp2));
     }
-    request->send(200, "text/plain", String(temp2));
+    else {
+      request->send(400, "text/plain", "Invalid parameters.");
+    }
   });
 
-  server.on("/toggle1", HTTP_POST, [](AsyncWebServerRequest* request) {
-    button1On = !button1On;
-    request->send(200, "text/plain", "Button 1 toggled.");
+  server.on("/toggle1", HTTP_GET, [](AsyncWebServerRequest* request) {
+    Serial.println("Received request for toggle 1.");
+    if (request->hasParam("toggle")) {
+      String toggle = request->getParam("toggle")->value();
+
+      if (toggle == "ON") {
+        temp1Enabled = true;
+      }
+      else {
+        temp1Enabled = false;
+      }
+      request->send(200, "text/plain", "Sensor 1 toggled: " + toggle);
+    }
+    else {
+      request->send(400, "text/plain", "Invalid parameters.");
+    }
   });
 
-  server.on("/toggle2", HTTP_POST, [](AsyncWebServerRequest* request) {
-    button2On = !button2On;
-    request->send(200, "text/plain", "Button 2 toggled.");
+  server.on("/toggle2", HTTP_GET, [](AsyncWebServerRequest* request) {
+    Serial.println("Received request for toggle 2.");
+    if (request->hasParam("toggle")) {
+      String toggle = request->getParam("toggle")->value();
+
+      if (toggle == "ON") {
+        temp2Enabled = true;
+      }
+      else {
+        temp2Enabled = false;
+      }
+      request->send(200, "text/plain", "Sensor 2 toggled: " + toggle);
+    }
+    else {
+      request->send(400, "text/plain", "Invalid parameters.");
+    }
   });
 
   server.begin();
@@ -120,19 +152,20 @@ void setup() {
 }
 
 void loop() {
-  temp1 = getTemperature(sensor1, unit);
-  temp2 = getTemperature(sensor2, unit);
 
-  unsigned long currentTime = millis();
-  unsigned long seconds = currentTime / 1000;
-  unsigned long minutes = seconds / 60;
-  unsigned long hours = minutes / 60;
-  seconds = seconds % 60;
-  minutes = minutes % 60;
+  updateSensorStatus(TEMP1_BUTTON_PIN, button1State, lastButton1State, lastButton1DebounceTime, temp1Enabled);
+  updateSensorStatus(TEMP2_BUTTON_PIN, button2State, lastButton2State, lastButton2DebounceTime, temp2Enabled);
 
-  Serial.printf("Time: %02lu:%02lu:%02lu | ", hours, minutes, seconds);
-  Serial.printf("Temp1: %.2f | ", temp1);
-  Serial.printf("Temp2: %.2f | ", temp2);
-  Serial.printf("Unit: %s\n", unit);
-  delay(100);
+  if (temp1Enabled) {
+    temp1 = getTemperature(sensor1, unit);
+  }
+  else {
+    temp1 = -100000.0;
+  }
+  if (temp2Enabled) {
+    temp2 = getTemperature(sensor2, unit);
+  }
+  else {
+    temp2 = -100000.0;
+  }
 }

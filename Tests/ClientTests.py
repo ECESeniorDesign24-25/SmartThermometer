@@ -2,21 +2,26 @@ import requests
 import time 
 import os
 
-def test_channel(ip, channel, function):
-    url = f"http://{ip}{channel}"
+def test_channel(ip, channel, function, initial=False):
+    host = f"{ip}{channel}?unit=C"
+    url = "http://" + host
 
-    print(f"\n--------------------\nTesting {function} request to {url}:")
-    curl = os.system(f"curl -vI {url}")
+    if initial:
+        print(f"\n--------------------\nTesting {function} request to {host}:")
+        curl = os.system(f"curl -vI {url}")
     start = time.time()
     if function == "GET":
-        response = requests.get(channel)
+        response = requests.get(url)
     elif function == "POST":
-        response = requests.post(channel)
+        response = requests.post(url)
     end = time.time()
     time_delta = round(end - start, 3)
-    print(f"Channel: {channel} | Response Code: {response} | Time: {time_delta}s" )
+
+    if initial:
+        print(f"Channel: {channel} | Response Code: {response} | Time: {time_delta}s" )
     assert response.status_code == 200
     assert time_delta < 1
+    return time_delta
 
 def test_esp32_server():
     esp32_ip = "192.168.1.25"
@@ -28,10 +33,18 @@ def test_esp32_server():
         print("ESP32 is not connected to the network, skipping.")
         return
 
-    for channel in get_channels:
-        test_channel(esp32_ip, channel, "GET")
-    for channel in post_channels:
-        test_channel(esp32_ip, channel, "POST")
+    times = []
+    for i in range(10):
+        for channel in get_channels:
+            time = test_channel(esp32_ip, channel, "GET")
+            times.append(time)
+        for channel in post_channels:
+            time = test_channel(esp32_ip, channel, "POST")
+            times.append(time)
+
+    avg_time = sum(times) / len(times)
+    print(f"\nAverage time for 10 requests for each channel: {avg_time}s")
+    assert avg_time < 1
 
 if __name__ == "__main__":
     test_esp32_server()

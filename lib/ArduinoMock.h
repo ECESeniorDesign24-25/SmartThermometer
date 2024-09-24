@@ -5,5 +5,6 @@
 #define LOW 0
 
 unsigned long millis();
+void delay(unsigned long);
 
 #endif

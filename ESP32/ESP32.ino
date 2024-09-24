@@ -7,11 +7,12 @@
 #include "SensorUtils.h"
 #include "Constants.h"
 
-const char* ssid = WIFI_USERNAME;
-const char* password = WIFI_PASSWORD;
+const char* ssid PROGMEM = WIFI_USERNAME;
+const char* password PROGMEM = WIFI_PASSWORD;
 
-float temp1 = 0;
-float temp2 = 0;
+float temp1 = 0.0;
+float temp2 = 0.0;
+char unit[2] = "C"; // default to celsius, make length 2 so we can null terminate
 
 bool button1On = false;
 bool button2On = false;
@@ -37,8 +38,6 @@ DallasTemperature sensor2(&oneWire2);
 AsyncWebServer server(80);
 LiquidCrystal lcd(RS, ENABLE, D4, D5, D6, D7);
 
-std::string unit = "C";
-
 void setup() {
   pinMode(TEMP1_BUTTON_PIN, INPUT);
   pinMode(TEMP2_BUTTON_PIN, INPUT);
@@ -46,10 +45,10 @@ void setup() {
   pinMode(TEMP2_SENSOR_PIN, INPUT);
 
   sensor1.begin();
-  sensor1.setResolution(11);
+  sensor1.setResolution(9); // use lowest precision for faster measurements
 
   sensor2.begin();
-  sensor2.setResolution(11);
+  sensor2.setResolution(9);
 
   Serial.begin(115200);
   Serial.println("Initialized serial.");
@@ -70,23 +69,31 @@ void setup() {
 
   server.on("/temperature1", HTTP_GET, [](AsyncWebServerRequest* request) {
     Serial.println("Received request for temperature 1.");
-    std::string newUnit = unit;
     if (request->hasParam("unit")) {
-      newUnit = request->getParam("unit")->value().c_str();
+      String newUnit = request->getParam("unit")->value();
+
+      // if we have a valid unit, convert temp
+      if (newUnit == "C" || newUnit == "F") {
+        temp1 = convertTemperature(temp1, unit, newUnit.c_str());
+        strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
+        unit[sizeof(unit) - 1] = '\0';
+      }
     }
-    temp1 = convertTemperature(temp1, unit, newUnit);
-    unit = newUnit;
     request->send(200, "text/plain", String(temp1));
   });
 
   server.on("/temperature2", HTTP_GET, [](AsyncWebServerRequest* request) {
     Serial.println("Received request for temperature 2.");
-    std::string newUnit = unit;
     if (request->hasParam("unit")) {
-      newUnit = request->getParam("unit")->value().c_str();
+      String newUnit = request->getParam("unit")->value();
+
+      // if we have a valid unit, convert temp
+      if (newUnit == "C" || newUnit == "F") {
+        temp2 = convertTemperature(temp2, unit, newUnit.c_str());
+        strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
+        unit[sizeof(unit) - 1] = '\0';  
+      }
     }
-    temp2 = convertTemperature(temp2, unit, newUnit);
-    unit = newUnit;
     request->send(200, "text/plain", String(temp2));
   });
 
@@ -112,4 +119,20 @@ void setup() {
   lcd.print("Sensor 2 OFF");
 }
 
-void loop() {}
+void loop() {
+  temp1 = getTemperature(sensor1, unit);
+  temp2 = getTemperature(sensor2, unit);
+
+  unsigned long currentTime = millis();
+  unsigned long seconds = currentTime / 1000;
+  unsigned long minutes = seconds / 60;
+  unsigned long hours = minutes / 60;
+  seconds = seconds % 60;
+  minutes = minutes % 60;
+
+  Serial.printf("Time: %02lu:%02lu:%02lu | ", hours, minutes, seconds);
+  Serial.printf("Temp1: %.2f | ", temp1);
+  Serial.printf("Temp2: %.2f | ", temp2);
+  Serial.printf("Unit: %s\n", unit);
+  delay(100);
+}

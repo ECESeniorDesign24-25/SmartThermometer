@@ -14,6 +14,6 @@
 
 void checkButtonStatus(int buttonRead, bool& buttonOn, int& buttonState, int& lastButtonState, int debounceDelay, unsigned long& lastDebounceTime);
 float calculateTemperature(bool buttonStatus, int temp);
-float getTemperature(DallasTemperature sensor, std::string unit);
-float convertTemperature(float temperature, std::string oldUnit, std::string newUnit);
+float getTemperature(DallasTemperature sensor, const char* unit);
+float convertTemperature(float temperature, const char* oldUnit, const char* newUnit);
 #endif

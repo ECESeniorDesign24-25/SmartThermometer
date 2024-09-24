@@ -3,11 +3,12 @@
 ### Arduino IDE Setup:
 1. Install [ESPAsyncWebServer library](https://github.com/me-no-dev/ESPAsyncWebServer/archive/master.zip), extract + rename the download to ESPAsyncWebServer, and move the folder to your Arduino/libraries directory
 2. Install [AsyncTCP library](https://github.com/me-no-dev/AsyncTCP/archive/refs/heads/master.zip), extract + rename the download to AsyncTCP, and move the folder to your Arduino/libraries directory
-3. All Required Libraries
+3. Make sure the following libraries are downloaded into the libraries/ folder inside your sketch folder:
     - ESPAsyncWebServer
     - AsyncTCP
     - DallasTemperature
     - LiquidCrystal
+
 
 > You might need to restart your Arduino IDE for the updates to take place
 
@@ -47,3 +48,12 @@ You must also run the following:
 git update-index --assume-unchanged set_creds.sh
 ```
 
+
+#### Testing:
+The Tests/ directory handles the automated testing suite for various functions across the source code. 
+
+To test ESP functions, add a test to the ESPTests.cpp file. Note: if you test a function that depends on an Arduino library, you must add a Mock library to the lib/ directory (See ArduinoMock.cpp).
+
+To test Client functions, add a test to the ClientTests.py file. Note: any test that depends on reading from the ESP32 server should skip if the ESP32 is not connected.
+
+All tests are run through run_tests.sh, which gets called in a GitHub Actions script on each new PR.

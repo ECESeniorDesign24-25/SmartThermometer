@@ -35,7 +35,6 @@ DallasTemperature sensor1(&oneWire1);
 DallasTemperature sensor2(&oneWire2);
 
 AsyncWebServer server(80);
-
 LiquidCrystal lcd(RS, ENABLE, D4, D5, D6, D7);
 
 std::string unit = "C";
@@ -46,12 +45,6 @@ void setup() {
   pinMode(TEMP1_SENSOR_PIN, INPUT);
   pinMode(TEMP2_SENSOR_PIN, INPUT);
 
-  // lcd.begin(16, 2);
-  // lcd.setCursor(1, 0);
-  // lcd.print("Sensor 1 OFF");
-  // lcd.setCursor(1, 1);
-  // lcd.print("Sensor 2 OFF");
-
   sensor1.begin();
   sensor1.setResolution(11);
 
@@ -59,9 +52,9 @@ void setup() {
   sensor2.setResolution(11);
 
   Serial.begin(115200);
-  lcd.begin(16, 2);
-
+  Serial.println("Initialized serial.");
   WiFi.begin(ssid, password);
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
@@ -109,32 +102,14 @@ void setup() {
 
   server.begin();
   Serial.println("Server started.");
+
+  lcd.begin(16, 2);
+  pinMode(TEMP1_BUTTON_PIN, INPUT);
+  pinMode(TEMP2_BUTTON_PIN, INPUT);
+  lcd.setCursor(1, 0);
+  lcd.print("Sensor 1 OFF");
+  lcd.setCursor(1, 1);
+  lcd.print("Sensor 2 OFF");
 }
 
-void loop() {
-  // temp1 = getTemperature(sensor1, unit);
-  // temp2 = getTemperature(sensor2, unit);
-  // button1State = digitalRead(TEMP1_BUTTON_PIN);
-  // if (button1State == LOW) {
-  //     lcd.clear();
-  //     lcd.setCursor(1, 0);
-  //     lcd.print("Sensor 1 ON ");
-  //     lcd.print(temp1);
-  //   }
-  // else {
-  //     lcd.setCursor(1, 0);
-  //     lcd.print("Sensor 1 OFF");
-  //   }
-
-  // button2State = digitalRead(TEMP2_BUTTON_PIN);
-  // if (button2State == LOW) {
-  //     lcd.setCursor(1, 1);
-  //     lcd.print("Sensor 2 ON ");
-  //     lcd.print(temp2);
-  //   }
-  // else {
-  //     lcd.setCursor(1, 1);
-  //     lcd.print("Sensor 2 OFF");
-  //   }
-  //checkButtonStatus(digitalRead(TEMP2_BUTTON_PIN), button2On, button2State, lastButton2State, debounceDelay, lastButton2DebounceTime);
-}
+void loop() {}

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "Compiling test files..."
-g++ -DUNIT_TEST -I./lib/unity -I./lib -I./ESP32 -I./tests -o Tests/testRunner Tests/Tests.cpp ESP32/SensorUtils.cpp lib/unity/unity.c lib/ArduinoMock.cpp
+echo "Compiling ESP test files..."
+g++ -DUNIT_TEST -I./lib/unity -I./lib -I./ESP32 -I./tests -o Tests/testRunner Tests/ESPTests.cpp ESP32/SensorUtils.cpp lib/unity/unity.c lib/ArduinoMock.cpp
 
 
 if [ $? -ne 0 ]; then
@@ -9,13 +9,22 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-echo "Running tests..."
+echo "Running ESP tests..."
 ./Tests/testRunner
 
 if [ $? -eq 0 ]; then
-  echo "All tests passed!"
+  echo "All ESP tests passed!"
 else
-  echo "Some tests failed."
+  echo "Some ESP tests failed."
+  exit 1
+fi
+
+echo "Running Client tests..."
+python3 Tests/ClientTests.py
+if [ $? -eq 0 ]; then
+  echo "All Client tests passed!"
+else
+  echo "Some Client tests failed."
   exit 1
 fi
 

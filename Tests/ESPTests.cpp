@@ -1,7 +1,7 @@
 #include "../lib/ArduinoMock.h"
 #include "../lib/unity/unity.h"
 #include "../ESP32/SensorUtils.h"
-#include "Tests.h"
+#include "ESPTests.h"
 
 // Test temperature calculation
 void testCalculateTemperature() {

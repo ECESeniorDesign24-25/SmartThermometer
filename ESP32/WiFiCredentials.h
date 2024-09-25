@@ -1,2 +1,3 @@
-#define WIFI_USERNAME "NETGEAR79"
-#define WIFI_PASSWORD "408JsgIowa"
+#define WIFI_SSID "eduroam"
+#define WIFI_USERNAME "jbkrueger"
+#define WIFI_PASSWORD "6DwrSMkYJengineer242!"

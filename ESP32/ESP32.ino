@@ -6,9 +6,13 @@
 #include <LiquidCrystal.h>
 #include "SensorUtils.h"
 #include "Constants.h"
+#include "WiFiCredentials.h"
+#include <esp_wifi.h>
+#include <esp_eap_client.h>
 
-const char* ssid PROGMEM = WIFI_USERNAME;
-const char* password PROGMEM = WIFI_PASSWORD;
+const char* ssid = WIFI_SSID;
+const char* username = WIFI_USERNAME;
+const char* password = WIFI_PASSWORD;
 
 float temp1 = 0.0;
 float temp2 = 0.0;
@@ -35,8 +39,53 @@ OneWire oneWire2(TEMP2_SENSOR_PIN);
 DallasTemperature sensor1(&oneWire1);
 DallasTemperature sensor2(&oneWire2);
 
+// web server
 AsyncWebServer server(80);
+
+// lcd
 LiquidCrystal lcd(RS, ENABLE, D4, D5, D6, D7);
+
+void initPersonalWifi() {
+  Serial.println("Attempting to connect to Personal WiFi.");
+  WiFi.begin(ssid, password);
+
+  int t = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    t += 500;
+    if (t == 30000) {
+      Serial.println("Unable to connect to Personal WiFi after 30s!");
+      t = 0;
+    }
+  }
+  Serial.printf("Connected to Personal WiFi with IP Address: %s\n", WiFi.localIP().toString().c_str());
+}
+
+void initEnterpriseWifi() {
+  Serial.println("Attempting to connect to Enterprise WiFi.");
+
+  // default config, station mode
+  wifi_init_config_t wifiConfig = WIFI_INIT_CONFIG_DEFAULT();
+  esp_wifi_init(&wifiConfig);
+  WiFi.mode(WIFI_STA);    
+  
+  esp_eap_client_set_identity((uint8_t *)username, strlen(username));
+  esp_eap_client_set_username((uint8_t *)username, strlen(username));
+  esp_eap_client_set_password((uint8_t *)password, strlen(password));
+  esp_wifi_sta_enterprise_enable();
+
+  WiFi.begin(ssid);
+  int t = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    t += 500;
+    if (t == 30000) {
+      Serial.println("Unable to connect to Enterprise WiFi after 30s!");
+      t = 0;
+    }
+  }
+  Serial.printf("Connected to Enterprise WiFi with IP Address: %s\n", WiFi.localIP().toString().c_str());
+}
 
 void setup() {
   pinMode(TEMP1_BUTTON_PIN, INPUT);
@@ -51,13 +100,16 @@ void setup() {
   sensor2.setResolution(9);
 
   Serial.begin(115200);
-  Serial.println("Initialized serial.");
-  WiFi.begin(ssid, password);
+  WiFi.disconnect(true);
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+  Serial.println("Initialized serial.");
+
+  if (strcmp(username, "") != 0) {
+    initEnterpriseWifi();
   }
-  Serial.printf("Connected to WiFi with IP Address: %s\n", WiFi.localIP().toString().c_str());
+  else {
+    initPersonalWifi();
+  }
 
   if (!MDNS.begin("esp32")) {
     Serial.println("Error setting up MDNS.");
@@ -197,16 +249,29 @@ void loop() {
   updateSensorStatus(TEMP1_BUTTON_PIN, button1State, lastButton1State, lastButton1DebounceTime, temp1Enabled);
   updateSensorStatus(TEMP2_BUTTON_PIN, button2State, lastButton2State, lastButton2DebounceTime, temp2Enabled);
 
+  lcd.clear();
+  lcd.setCursor(1, 0);
+
   if (temp1Enabled) {
     temp1 = getTemperature(sensor1, unit);
+    char buffer1[16];
+    sprintf(buffer1, "Sensor 1: %d%s", temp1, unit);
+    lcd.print(buffer1);
   }
   else {
     temp1 = -100000.0;
+    lcd.print("Sensor 1 OFF");
   }
+
+  lcd.setCursor(1, 1);
   if (temp2Enabled) {
     temp2 = getTemperature(sensor2, unit);
+    char buffer2[16];
+    sprintf(buffer2, "Sensor 2: %d%s", temp2, unit);
+    lcd.print(buffer2);
   }
   else {
     temp2 = -100000.0;
+    lcd.print("Sensor 2 OFF");
   }
 }

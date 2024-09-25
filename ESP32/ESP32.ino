@@ -1,5 +1,4 @@
 #include <WiFi.h>
-#include <ESPmDNS.h>
 #include <string>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
@@ -110,14 +109,6 @@ void setup() {
   else {
     initPersonalWifi();
   }
-
-  if (!MDNS.begin("esp32")) {
-    Serial.println("Error setting up MDNS.");
-    while (1) {
-      delay(1000);
-    }
-  }
-  Serial.println("mDNS started. Access with http://esp32.local");
 
   server.on("/temperature1", HTTP_GET, [](AsyncWebServerRequest* request) {
     Serial.println("Received request for temperature 1.");

@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v3
 
       - name: Set up Arduino CLI
@@ -28,12 +28,12 @@ jobs:
 
       - name: Install required libraries
         run: |
-          arduino-cli lib install "WiFi"
-          arduino-cli lib install "AsyncTCP"
-          arduino-cli lib install "ESPAsyncWebServer"
-          arduino-cli lib install "LiquidCrystal"
-          arduino-cli lib install "OneWire"
-          arduino-cli lib install "DallasTemperature"
+            arduino-cli lib update-index
+            arduino-cli lib install "AsyncTCP@1.1.4"
+            arduino-cli lib install "ESPAsyncWebServer@3.1.0"
+            arduino-cli lib install "LiquidCrystal@1.0.7"
+            arduino-cli lib install "OneWire@2.3.8"
+            arduino-cli lib install "DallasTemperature@3.9.0"
 
       - name: Compile
         run: |

@@ -1,6 +1,5 @@
 // wifi credentials (fill out for new network)
-#define WIFI_SSID "" // wifi network name
-#define WIFI_USERNAME "" // only need this for enterprise wifi network
+#define WIFI_USERNAME ""
 #define WIFI_PASSWORD ""
 #define WIFI_SERVER_PORT 80
 

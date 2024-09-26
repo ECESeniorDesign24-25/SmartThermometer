@@ -1,4 +1,5 @@
 // wifi credentials (fill out for new network)
+#define WIFI_SSID ""
 #define WIFI_USERNAME ""
 #define WIFI_PASSWORD ""
 #define WIFI_SERVER_PORT 80
@@ -20,7 +21,7 @@
 #define D7 22
 
 // variables
-#define DEBOUNCE_DELAY 50
+#define DEBOUNCE_DELAY 65
 #define MIN_TEMP 0
 #define MAX_TEMP 2000
 #define SENSOR_OFF_TEMP -100000.0

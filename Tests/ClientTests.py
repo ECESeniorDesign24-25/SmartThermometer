@@ -39,7 +39,7 @@ def test_esp32_server():
     """
     Tests that the average time for 10 requests for each channel is less than 1s
     """
-    print("\n--------------------\nTesting ESP32 server:")
+    print(f"\nTesting ESP32 server with IP {ESP32_IP}:")
 
     if not ESP32_IP:
         print("ESP32 IP not found, skipping.")
@@ -47,7 +47,8 @@ def test_esp32_server():
 
     ping = os.system("ping -c 1 " + ESP32_IP)
     if ping != 0:
-        raise Exception("Error connecting to ESP32!")
+        print("Error connecting to ESP32! Skipping tests.")
+        return False
 
     times = []
     for i in range(10):

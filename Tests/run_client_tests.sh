@@ -4,7 +4,7 @@ green='\033[0;32m'
 red='\033[0;31m'
 clear='\033[0m'
 
-echo "Running Client tests..."
+printf "\n----------------------\nRunning Client tests...\n"
 python3 Tests/ClientTests.py
 if [ $? -eq 0 ]; then
   printf "${green}All Client tests passed!${clear}\n"

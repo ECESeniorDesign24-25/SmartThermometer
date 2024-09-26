@@ -1,7 +1,7 @@
 // wifi credentials (fill out for new network)
-#define WIFI_SSID "eduroam"
-#define WIFI_USERNAME "jbkrueger@uiowa.edu"
-#define WIFI_PASSWORD "6DwrSMkYJengineer242!"
+#define WIFI_SSID ""
+#define WIFI_USERNAME ""
+#define WIFI_PASSWORD ""
 #define WIFI_SERVER_PORT 80
 
 // UDP

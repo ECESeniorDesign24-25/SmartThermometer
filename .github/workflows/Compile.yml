@@ -37,7 +37,6 @@ jobs:
             arduino-cli lib install "LiquidCrystal@1.0.7"
             arduino-cli lib install "OneWire@2.3.8"
             arduino-cli lib install "DallasTemperature@3.9.0"
-            arduino-cli lib install "ESPmDNS@2.0.0"
             
             mkdir -p /home/runner/Arduino/libraries
             wget https://github.com/me-no-dev/ESPAsyncWebServer/archive/master.zip -O /home/runner/Arduino/libraries/ESPAsyncWebServer.zip

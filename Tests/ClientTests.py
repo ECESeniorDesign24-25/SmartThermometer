@@ -2,7 +2,7 @@ import requests
 import time
 import os
 
-ESP32_IP = "192.168.1.25"
+ESP32_IP = "192.168.1.2"
 TEMP_CHANNELS = ["/temperature1", "/temperature2"]
 TOGGLE_CHANNELS = ["/toggle1", "/toggle2"]
 

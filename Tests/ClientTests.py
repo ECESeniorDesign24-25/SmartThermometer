@@ -7,7 +7,14 @@ CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 GUI_DIR = os.path.join(CURR_DIR, "..", "GUI")
 sys.path.insert(0, os.path.abspath(GUI_DIR))
 
-from Constants import TEMP1_CHANNEL, TEMP2_CHANNEL, TEMP1_BUTTON_CHANNEL, TEMP2_BUTTON_CHANNEL, ESP32_IP
+from Constants import (
+    TEMP1_CHANNEL,
+    TEMP2_CHANNEL,
+    TEMP1_BUTTON_CHANNEL,
+    TEMP2_BUTTON_CHANNEL,
+    ESP32_IP,
+)
+
 TEMP_CHANNELS = [TEMP1_CHANNEL, TEMP2_CHANNEL]
 TOGGLE_CHANNELS = [TEMP1_BUTTON_CHANNEL, TEMP2_BUTTON_CHANNEL]
 

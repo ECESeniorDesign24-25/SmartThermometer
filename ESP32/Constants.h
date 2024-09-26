@@ -1,6 +1,6 @@
 // wifi credentials (fill out for new network)
-#define WIFI_USERNAME "NETGEAR79"
-#define WIFI_PASSWORD "408JsgIowa"
+#define WIFI_USERNAME ""
+#define WIFI_PASSWORD ""
 #define WIFI_SERVER_PORT 80
 
 // UDP

@@ -19,7 +19,7 @@ OFF_TEMPERATURE = -100000.00
 
 # ESP32 web server channels
 ESP32_IP = getIP()
-ESP32_SERVER = "http://" + ESP32_IP
+ESP32_SERVER = "http://" + (ESP32_IP if ESP32_IP else "")
 TEMP1_CHANNEL = ESP32_SERVER + "/temperature1"
 TEMP2_CHANNEL = ESP32_SERVER + "/temperature2"
 TEMP1_BUTTON_CHANNEL = ESP32_SERVER + "/toggle1"

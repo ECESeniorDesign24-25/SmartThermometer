@@ -68,125 +68,140 @@ void sendIP() {
 void setupServer() {
   WiFi.begin(ssid, password);
 
+  unsigned long startTime = millis();
+  bool connected = true;
+  Serial.println("Attempting to connect to WiFi.");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(F("."));
+    if (millis() - startTime > 30000) {
+      Serial.printf("\nUnable to connect to WiFi. Verify your ssid/username/password.");
+      connected = false;
+      break;
+    }
   }
-  Serial.printf("\nConnected to WiFi with IP Address: %s\n", WiFi.localIP().toString().c_str());
 
-  server.on("/temperature1", HTTP_GET, [](AsyncWebServerRequest* request) {
-    if (request->hasParam("unit")) {
-      String newUnit = request->getParam("unit")->value();
+  if (connected) {
+    Serial.printf("\nConnected to WiFi with IP Address: %s\n", WiFi.localIP().toString().c_str());
 
-      // if we have a valid unit, convert temp
-      if (newUnit == "C" || newUnit == "F") {
+    server.on("/temperature1", HTTP_GET, [](AsyncWebServerRequest* request) {
+      if (request->hasParam("unit")) {
+        String newUnit = request->getParam("unit")->value();
 
-        // check enabled
+        // if we have a valid unit, convert temp
+        if (newUnit == "C" || newUnit == "F") {
+
+          // check enabled
+          if (sensor1Enabled) {
+
+            // if sensor was off but not disconnected, recompute
+            if (temp1 == SENSOR_OFF_TEMP || temp1 != SENSOR_DISCONNECT_TEMP) {
+              temp1 = getTemperature(sensor1, unit, sensor1Enabled);
+            }
+            temp1 = convertTemperature(temp1, unit, newUnit.c_str());
+            strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
+            unit[sizeof(unit) - 1] = '\0';
+          }
+          else {
+            temp1 = SENSOR_OFF_TEMP;
+          }
+        }
+        request->send(200, "text/plain", String(temp1));
+      }
+      else {
+        request->send(400, "text/plain", "Invalid parameters.");
+      }
+    });
+
+    server.on("/temperature2", HTTP_GET, [](AsyncWebServerRequest* request) {
+      if (request->hasParam("unit")) {
+        String newUnit = request->getParam("unit")->value();
+        
+        // if we have a valid unit, convert temp
+        if (newUnit == "C" || newUnit == "F") {
+
+          // check enabled
+          if (sensor2Enabled) {
+            if (temp2 == SENSOR_OFF_TEMP || temp2 != SENSOR_DISCONNECT_TEMP) {
+              temp2 = getTemperature(sensor1, unit, sensor2Enabled);
+            }
+
+            temp2 = convertTemperature(temp2, unit, newUnit.c_str());
+            strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
+            unit[sizeof(unit) - 1] = '\0';  
+          } 
+          else {
+            temp2 = SENSOR_OFF_TEMP;
+          }
+        }
+        request->send(200, "text/plain", String(temp2));
+      }
+      else {
+        request->send(400, "text/plain", "Invalid parameters.");
+      }
+    });
+
+    server.on("/toggle1", HTTP_GET, [](AsyncWebServerRequest* request) {
+      if (request->hasParam("toggle")) {
+        String toggle = request->getParam("toggle")->value();
+
+        if (toggle == "ON") {
+          sensor1Enabled = true;
+        }
+        else {
+          sensor1Enabled = false;
+        }
+        request->send(200, "text/plain", "Sensor 1 toggled: " + toggle);
+
+        // recompute
+        temp1 = getTemperature(sensor1, unit, sensor1Enabled);
+      }
+      else if (request->params() == 0) {
+        String responseString = "OFF";
         if (sensor1Enabled) {
+          responseString = "ON";
+        }
+        request->send(200, "text/plain", responseString);    
+      }
+      else {
+        request->send(400, "text/plain", "Invalid parameters.");
+      }
+    });
 
-          // if sensor was off but not disconnected, recompute
-          if (temp1 == SENSOR_OFF_TEMP || temp1 != SENSOR_DISCONNECT_TEMP) {
-            temp1 = getTemperature(sensor1, unit, sensor1Enabled);
-          }
-          temp1 = convertTemperature(temp1, unit, newUnit.c_str());
-          strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
-          unit[sizeof(unit) - 1] = '\0';
+
+    server.on("/toggle2", HTTP_GET, [](AsyncWebServerRequest* request) {
+      if (request->hasParam("toggle")) {
+        String toggle = request->getParam("toggle")->value();
+
+        if (toggle == "ON") {
+          sensor2Enabled = true;
         }
         else {
-          temp1 = SENSOR_OFF_TEMP;
+          sensor2Enabled = false;
         }
+        request->send(200, "text/plain", "Sensor 2 toggled: " + toggle);
+
+        // recompute 
+        temp2 = getTemperature(sensor2, unit, sensor2Enabled);
       }
-      request->send(200, "text/plain", String(temp1));
-    }
-    else {
-      request->send(400, "text/plain", "Invalid parameters.");
-    }
-  });
-
-  server.on("/temperature2", HTTP_GET, [](AsyncWebServerRequest* request) {
-    if (request->hasParam("unit")) {
-      String newUnit = request->getParam("unit")->value();
-      
-      // if we have a valid unit, convert temp
-      if (newUnit == "C" || newUnit == "F") {
-
-        // check enabled
+      else if (request->params() == 0) {
+        String responseString = "OFF";
         if (sensor2Enabled) {
-          if (temp2 == SENSOR_OFF_TEMP || temp2 != SENSOR_DISCONNECT_TEMP) {
-            temp2 = getTemperature(sensor1, unit, sensor2Enabled);
-          }
-
-          temp2 = convertTemperature(temp2, unit, newUnit.c_str());
-          strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
-          unit[sizeof(unit) - 1] = '\0';  
-        } 
-        else {
-          temp2 = SENSOR_OFF_TEMP;
+          responseString = "ON";
         }
-      }
-      request->send(200, "text/plain", String(temp2));
-    }
-    else {
-      request->send(400, "text/plain", "Invalid parameters.");
-    }
-  });
-
-  server.on("/toggle1", HTTP_GET, [](AsyncWebServerRequest* request) {
-    if (request->hasParam("toggle")) {
-      String toggle = request->getParam("toggle")->value();
-
-      if (toggle == "ON") {
-        sensor1Enabled = true;
+        request->send(200, "text/plain", responseString);    
       }
       else {
-        sensor1Enabled = false;
+        request->send(400, "text/plain", "Invalid parameters.");
       }
-      request->send(200, "text/plain", "Sensor 1 toggled: " + toggle);
+    });
 
-      // recompute
-      temp1 = getTemperature(sensor1, unit, sensor1Enabled);
-    }
-    else if (request->params() == 0) {
-      String responseString = "OFF";
-      if (sensor1Enabled) {
-        responseString = "ON";
-      }
-      request->send(200, "text/plain", responseString);    
-    }
-    else {
-      request->send(400, "text/plain", "Invalid parameters.");
-    }
-  });
-
-  server.on("/toggle2", HTTP_GET, [](AsyncWebServerRequest* request) {
-    if (request->hasParam("toggle")) {
-      String toggle = request->getParam("toggle")->value();
-
-      if (toggle == "ON") {
-        sensor2Enabled = true;
-      }
-      else {
-        sensor2Enabled = false;
-      }
-      request->send(200, "text/plain", "Sensor 2 toggled: " + toggle);
-
-      // recompute 
-      temp2 = getTemperature(sensor2, unit, sensor2Enabled);
-    }
-    else if (request->params() == 0) {
-      String responseString = "OFF";
-      if (sensor2Enabled) {
-        responseString = "ON";
-      }
-      request->send(200, "text/plain", responseString);    
-    }
-    else {
-      request->send(400, "text/plain", "Invalid parameters.");
-    }
-  });
-
-  server.begin();
-  udp.beginMulticast(multicastIP, multicastPort);
+    server.begin();
+    udp.beginMulticast(multicastIP, multicastPort);
+  }
+  else {
+    Serial.println("Running offline.");
+  }
 }
 
 void setup() {  

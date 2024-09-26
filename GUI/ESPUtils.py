@@ -18,7 +18,7 @@ def PollTemperatureFromESP(sensorNumber: int, unit: str = "C"):
             url = TEMP2_CHANNEL
         else:
             return None
-        response = requests.get(url+"?unit="+unit, timeout=5)
+        response = requests.get(url + "?unit=" + unit, timeout=5)
         response.raise_for_status()
         temperature = float(response.text.split()[0])
         return temperature
@@ -38,7 +38,7 @@ def ToggleSensorOnESP(sensorNumber: int, toggle: int):
             url = TEMP2_BUTTON_CHANNEL
         else:
             return False
-        message = requests.get(url+"?toggle="+str(toggle), timeout=5)
+        message = requests.get(url + "?toggle=" + str(toggle), timeout=5)
         if message.status_code == 200:
             return True
         else:

@@ -15,7 +15,8 @@ def Start():
         temperature1 = ProcessTemperature(receiver=receiver, sensor=1, unit="C")
         temperature2 = ProcessTemperature(receiver=receiver, sensor=2, unit="C")
 
-def ProcessTemperature(receiver: Receiver, sensor: int=1, unit: str="C"):
+
+def ProcessTemperature(receiver: Receiver, sensor: int = 1, unit: str = "C"):
     """
     Polls the temperature from the ESP32, and sends an email and SMS if the temperature exceeds MAX_TEMPERATURE
     """

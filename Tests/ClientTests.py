@@ -7,7 +7,14 @@ CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 GUI_DIR = os.path.join(CURR_DIR, "..", "GUI")
 sys.path.insert(0, os.path.abspath(GUI_DIR))
 
-from Constants import TEMP1_CHANNEL, TEMP2_CHANNEL, TEMP1_BUTTON_CHANNEL, TEMP2_BUTTON_CHANNEL, ESP32_IP
+from Constants import (
+    TEMP1_CHANNEL,
+    TEMP2_CHANNEL,
+    TEMP1_BUTTON_CHANNEL,
+    TEMP2_BUTTON_CHANNEL,
+    ESP32_IP,
+)
+
 TEMP_CHANNELS = [TEMP1_CHANNEL, TEMP2_CHANNEL]
 TOGGLE_CHANNELS = [TEMP1_BUTTON_CHANNEL, TEMP2_BUTTON_CHANNEL]
 
@@ -33,10 +40,14 @@ def test_esp32_server():
     Tests that the average time for 10 requests for each channel is less than 1s
     """
     print("\n--------------------\nTesting ESP32 server:")
+
+    if not ESP32_IP:
+        print("ESP32 IP not found, skipping.")
+        return False
+
     ping = os.system("ping -c 1 " + ESP32_IP)
     if ping != 0:
-        print("ESP32 is not connected to the network, skipping.")
-        return False
+        raise Exception("Error connecting to ESP32!")
 
     times = []
     for i in range(10):
@@ -120,7 +131,11 @@ def test_invalid_channel_request():
 
 
 if __name__ == "__main__":
-    server_up = test_esp32_server()
-    if server_up:
-        test_esp32_sensor_toggle()
-        test_invalid_channel_request()
+    try:
+        server_up = test_esp32_server()
+        if server_up:
+            test_esp32_sensor_toggle()
+            test_invalid_channel_request()
+    except Exception as e:
+        print(e)
+        sys.exit(1)

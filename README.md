@@ -1,5 +1,12 @@
 # SmartThermometer Setup Docs
 
+### Repository Setup:
+
+Step 1 to set up the project is to clone this repository by running the following in your terminal:
+```
+git clone https://github.com/ECESeniorDesign24-25/SmartThermometer.git
+```
+
 ### Programming Setup (Arduino IDE):
 1. IDE Setup:
     - Use the Arduino IDE with the esp32 board provided by Espressif Systems. <strong>Important: You MUST use Version 2.0.17</strong>, not the latest. This will allow connection to enterprise WiFi networks (such as eduroam).
@@ -31,7 +38,8 @@
 ### Troubleshooting
 1. You can run the Tests/run_client_tests.sh file to quickly verify connection between PC and ESP32. Note: You must be on the same WiFi network as the ESP32:
     MacOS/Unix: `./Tests/run_client_tests.sh`
-2. If the test outputs "Skipping tests", then there was an issue with the test script connecting to the ESP32. You can manuallly try to connect through your command line. In your serial console when running the ESP32 code, you should see:
+   
+3. If the test outputs "Skipping tests", then there was an issue with the test script connecting to the ESP32. You can manuallly try to connect through your command line. In your serial console when running the ESP32 code, you should see:
    ```
    Connected to <WiFi Address> with IP Address: <IP Address>
    ```
@@ -45,7 +53,8 @@
    PING <IP Address> (<IP Address>): 56 data bytes
    64 bytes from <IP Address>: icmp_seq=0 ttl=63 time=6.954 ms
    ```
-3. Once you are able to ping the ESP32, you can now manually make HTTP requests to the ESP32 Web Server. Here are the supported requests:
+   
+4. Once you are able to ping the ESP32, you can now manually make HTTP requests to the ESP32 Web Server. Here are the supported requests:
    - Request temperature from a sensor:
        ```
        curl <IP Address>/temperature1?unit=C

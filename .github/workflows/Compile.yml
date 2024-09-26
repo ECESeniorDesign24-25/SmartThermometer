@@ -28,7 +28,7 @@ jobs:
       - name: Install ESP32 Core
         run: |
           arduino-cli core update-index
-          arduino-cli core install esp32:esp32@3.0.4
+          arduino-cli core install esp32:esp32@2.0.17
 
       - name: Install required libraries
         run: |
@@ -37,6 +37,7 @@ jobs:
             arduino-cli lib install "LiquidCrystal@1.0.7"
             arduino-cli lib install "OneWire@2.3.8"
             arduino-cli lib install "DallasTemperature@3.9.0"
+            arduino-cli lib install "ESPmDNS@2.0.0"
             
             mkdir -p /home/runner/Arduino/libraries
             wget https://github.com/me-no-dev/ESPAsyncWebServer/archive/master.zip -O /home/runner/Arduino/libraries/ESPAsyncWebServer.zip

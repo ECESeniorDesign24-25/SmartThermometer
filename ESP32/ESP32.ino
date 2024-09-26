@@ -6,8 +6,9 @@
 #include "SensorUtils.h"
 #include "Constants.h"
 
-const char* ssid PROGMEM = WIFI_USERNAME;
-const char* password PROGMEM = WIFI_PASSWORD;
+const char* ssid = WIFI_SSID;
+const char* username = WIFI_USERNAME;
+const char* password = WIFI_PASSWORD;
 
 float temp1 = 0.0;
 float temp2 = 0.0;
@@ -32,10 +33,11 @@ DallasTemperature sensor2(&oneWire2);
 AsyncWebServer server(WIFI_SERVER_PORT);
 LiquidCrystal lcd(RS, ENABLE, D4, D5, D6, D7);
 
+bool wifiConnected = true;
+bool personalNetwork = true;
 
 // set up UDP multicast to broadcast the current dynamic IP to 
-// other devices on the network (python client)
-WiFiUDP udp;
+// other devices on the network (python client) -- doesnt work on eduroam
 const IPAddress multicastIP(MULTICAST_IP_VAL, 0, 0, 0);
 const uint16_t multicastPort = MULTICAST_PORT;
 
@@ -59,30 +61,38 @@ void IRAM_ATTR handleTemp2Button() {
 
 void sendIP() {
   // sends packet with ip to listening devices on the local network
-  String ipMessage = WiFi.localIP().toString();
+  String ip = WiFi.localIP().toString();
   udp.beginPacket(multicastIP, multicastPort);
-  udp.print(ipMessage);
-  udp.endPacket();
+  udp.print(ip);
+  int packetResult = udp.endPacket();
 }
 
 void setupServer() {
-  WiFi.begin(ssid, password);
+  Serial.printf("\nAttempting to connect to %s...\n", ssid);
+  if (strcmp(WIFI_USERNAME, "") != 0) { // enterprise network (eduroam)
+    personalNetwork = false;
+    WiFi.mode(WIFI_MODE_STA);
+    WiFi.begin(ssid, WPA2_AUTH_PEAP, username, username, password);
+  }
+  else { // personal network
+    WiFi.begin(ssid, password);
+  }
 
   unsigned long startTime = millis();
-  bool connected = true;
-  Serial.println("Attempting to connect to WiFi.");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(F("."));
     if (millis() - startTime > 30000) {
-      Serial.printf("\nUnable to connect to WiFi. Verify your ssid/username/password.");
-      connected = false;
+      Serial.printf("\nUnable to connect to %s. Verify your ssid/username/password.", ssid);
+      wifiConnected = false;
       break;
     }
   }
 
-  if (connected) {
-    Serial.printf("\nConnected to WiFi with IP Address: %s\n", WiFi.localIP().toString().c_str());
+  if (wifiConnected) {
+    char buffer[100];
+    sprintf(buffer, "\nConnected to %s with IP Address: %s\n", ssid, WiFi.localIP().toString().c_str());
+    Serial.printf(buffer);
 
     server.on("/temperature1", HTTP_GET, [](AsyncWebServerRequest* request) {
       if (request->hasParam("unit")) {
@@ -198,9 +208,10 @@ void setupServer() {
 
     server.begin();
     udp.beginMulticast(multicastIP, multicastPort);
+    Serial.println("Initialized server.");
   }
   else {
-    Serial.println("Running offline.");
+    Serial.printf("\nRunning offline.\n");
   }
 }
 
@@ -225,11 +236,10 @@ void setup() {
 
   // set up serial
   Serial.begin(115200);
-  Serial.println("Initialized serial.");
+  Serial.println("\nInitialized serial.");
 
   // set up server
   setupServer();
-  Serial.println("Initialized server.");
   
   // set up lcd
   lcd.begin(16, 2);
@@ -257,8 +267,10 @@ void displayTemperature(int sensor, float temperature) {
 
 void loop() {
 
-  // broadcast ip for any new clients
-  sendIP();
+  // broadcast ip for any new clients if connected to wifi
+  if (wifiConnected && personalNetwork) {
+    sendIP();
+  }
 
   // check if buttons have been pressed
   if (temp1ButtonPressed) {

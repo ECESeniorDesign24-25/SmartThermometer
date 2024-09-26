@@ -39,7 +39,7 @@ def test_esp32_server():
     """
     Tests that the average time for 10 requests for each channel is less than 1s
     """
-    print("\n--------------------\nTesting ESP32 server:")
+    print(f"\nTesting ESP32 server with IP {ESP32_IP}:")
 
     if not ESP32_IP:
         print("ESP32 IP not found, skipping.")

@@ -1,6 +1,7 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <WiFiUdp.h>
 #include <LiquidCrystal.h>
 #include "SensorUtils.h"
 #include "Constants.h"
@@ -15,7 +16,6 @@ char unit[2] = "C"; // default to celsius, make length 2 so we can null terminat
 bool sensor1Enabled = true;
 bool sensor2Enabled = true;
 
-unsigned long debounceDelay = 75;
 unsigned long lastButton1Press = 0;
 unsigned long lastButton2Press = 0;
 
@@ -29,13 +29,20 @@ OneWire oneWire2(TEMP2_SENSOR_PIN);
 DallasTemperature sensor1(&oneWire1);
 DallasTemperature sensor2(&oneWire2);
 
-AsyncWebServer server(80);
+AsyncWebServer server(WIFI_SERVER_PORT);
 LiquidCrystal lcd(RS, ENABLE, D4, D5, D6, D7);
+
+
+// set up UDP multicast to broadcast the current dynamic IP to 
+// other devices on the network (python client)
+WiFiUDP udp;
+const IPAddress multicastIP(MULTICAST_IP_VAL, 0, 0, 0);
+const uint16_t multicastPort = MULTICAST_PORT;
 
 // button 1 interrupt
 void IRAM_ATTR handleTemp1Button() {
     unsigned long currentTime = millis();
-    if (currentTime - lastButton1Press > debounceDelay) {
+    if (currentTime - lastButton1Press > DEBOUNCE_DELAY) {
         temp1ButtonPressed = true;
         lastButton1Press = currentTime;
     }
@@ -44,31 +51,21 @@ void IRAM_ATTR handleTemp1Button() {
 // button 2 interrupt
 void IRAM_ATTR handleTemp2Button() {
     unsigned long currentTime = millis();
-    if (currentTime - lastButton2Press > debounceDelay) {
+    if (currentTime - lastButton2Press > DEBOUNCE_DELAY) {
         temp2ButtonPressed = true;
         lastButton2Press = currentTime;
     }
 }
 
+void sendIP() {
+  // sends packet with ip to listening devices on the local network
+  String ipMessage = WiFi.localIP().toString();
+  udp.beginPacket(multicastIP, multicastPort);
+  udp.print(ipMessage);
+  udp.endPacket();
+}
 
-void setup() {
-  pinMode(TEMP1_BUTTON_PIN, INPUT);
-  pinMode(TEMP2_BUTTON_PIN, INPUT);
-  pinMode(TEMP1_SENSOR_PIN, INPUT);
-  pinMode(TEMP2_SENSOR_PIN, INPUT);
-
-  // set interrupts on falling edge high to low
-  attachInterrupt(digitalPinToInterrupt(TEMP1_BUTTON_PIN), handleTemp1Button, FALLING);
-  attachInterrupt(digitalPinToInterrupt(TEMP2_BUTTON_PIN), handleTemp2Button, FALLING);
-
-  sensor1.begin();
-  sensor1.setResolution(11); // high precision
-
-  sensor2.begin();
-  sensor2.setResolution(11);
-
-  Serial.begin(115200);
-  Serial.println("Initialized serial.");
+void setupServer() {
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -189,12 +186,39 @@ void setup() {
   });
 
   server.begin();
-  Serial.println("Server started.");
+  udp.beginMulticast(multicastIP, multicastPort);
+}
 
-  lcd.begin(16, 2);
-  lcd.clear();
+void setup() {  
+
+  // set up pins
   pinMode(TEMP1_BUTTON_PIN, INPUT);
   pinMode(TEMP2_BUTTON_PIN, INPUT);
+  pinMode(TEMP1_SENSOR_PIN, INPUT);
+  pinMode(TEMP2_SENSOR_PIN, INPUT);
+
+  // set interrupts on falling edge high to low
+  attachInterrupt(digitalPinToInterrupt(TEMP1_BUTTON_PIN), handleTemp1Button, FALLING);
+  attachInterrupt(digitalPinToInterrupt(TEMP2_BUTTON_PIN), handleTemp2Button, FALLING);
+
+  // set up sensors
+  sensor1.begin();
+  sensor1.setResolution(11); // high precision
+
+  sensor2.begin();
+  sensor2.setResolution(11);
+
+  // set up serial
+  Serial.begin(115200);
+  Serial.println("Initialized serial.");
+
+  // set up server
+  setupServer();
+  Serial.println("Initialized server.");
+  
+  // set up lcd
+  lcd.begin(16, 2);
+  lcd.clear();
 }
 
 void displayTemperature(int sensor, float temperature) {
@@ -217,6 +241,9 @@ void displayTemperature(int sensor, float temperature) {
 }
 
 void loop() {
+
+  // broadcast ip for any new clients
+  sendIP();
 
   // check if buttons have been pressed
   if (temp1ButtonPressed) {

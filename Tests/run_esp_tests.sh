@@ -1,5 +1,9 @@
 #!/bin/bash
 
+green='\033[0;32m'
+red='\033[0;31m'
+clear='\033[0m'
+
 echo "Compiling ESP test files..."
 g++ -DUNIT_TEST -I./lib/unity -I./lib -I./ESP32 -I./tests -o Tests/testRunner Tests/ESPTests.cpp ESP32/SensorUtils.cpp lib/unity/unity.c lib/ArduinoMock.cpp
 
@@ -13,13 +17,10 @@ echo "Running ESP tests..."
 ./Tests/testRunner
 
 if [ $? -eq 0 ]; then
-  echo "All ESP tests passed!"
+  printf "${green}All ESP tests passed!${clear}\n"
 else
-  echo "Some ESP tests failed."
+  printf "${red}Some ESP tests failed.${clear}\n"
   exit 1
 fi
 
-echo "Cleaning up..."
 rm -rf Tests/testRunner
-
-echo "Done."

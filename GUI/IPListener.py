@@ -1,6 +1,6 @@
 import socket
 import struct
-
+import time 
 def getIP():
     MULTICAST_GROUP = '238.0.0.0'
     MULTICAST_PORT = 12345
@@ -15,8 +15,12 @@ def getIP():
     # Tell the operating system to add the socket to the multicast group on all interfaces.
     mreq = struct.pack("4sl", socket.inet_aton(MULTICAST_GROUP), socket.INADDR_ANY)
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    sock.settimeout(5)
 
-    while True:
-        data, addr = sock.recvfrom(1024)
-        esp32_ip = data.decode('utf-8')
-        return esp32_ip
+    try:
+        while True:
+            data, addr = sock.recvfrom(1024)
+            esp32_ip = data.decode('utf-8')
+            return esp32_ip
+    except socket.timeout:
+        return None

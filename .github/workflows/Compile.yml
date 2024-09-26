@@ -30,7 +30,7 @@ jobs:
         run: |
             arduino-cli lib update-index
             arduino-cli lib install "AsyncTCP@1.1.4"
-            arduino-cli lib install "ESPAsyncWebServer@3.1.0"
+            arduino-cli lib install "ESPAsyncWebServer@3.0.6"
             arduino-cli lib install "LiquidCrystal@1.0.7"
             arduino-cli lib install "OneWire@2.3.8"
             arduino-cli lib install "DallasTemperature@3.9.0"

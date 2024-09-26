@@ -1,22 +1,26 @@
 import requests
 import time
+import sys
 import os
 
-ESP32_IP = "192.168.1.2"
-TEMP_CHANNELS = ["/temperature1", "/temperature2"]
-TOGGLE_CHANNELS = ["/toggle1", "/toggle2"]
+CURR_DIR = os.path.dirname(os.path.abspath(__file__))
+GUI_DIR = os.path.join(CURR_DIR, "..", "GUI")
+sys.path.insert(0, os.path.abspath(GUI_DIR))
+
+from Constants import TEMP1_CHANNEL, TEMP2_CHANNEL, TEMP1_BUTTON_CHANNEL, TEMP2_BUTTON_CHANNEL, ESP32_IP
+TEMP_CHANNELS = [TEMP1_CHANNEL, TEMP2_CHANNEL]
+TOGGLE_CHANNELS = [TEMP1_BUTTON_CHANNEL, TEMP2_BUTTON_CHANNEL]
 
 
 def test_channel(host, verbose=False, expected_status=200):
     """
     Checks the response time of a GET request to a channel on the ESP32 server
     """
-    url = "http://" + host
     if verbose:
         print(f"\n--------------------\nTesting GET request to {host}:")
-        curl = os.system(f"curl -vI {url}")
+        curl = os.system(f"curl -vI {host}")
     start = time.time()
-    response = requests.get(url)
+    response = requests.get(host)
     end = time.time()
     time_delta = round(end - start, 3)
 
@@ -37,10 +41,10 @@ def test_esp32_server():
     times = []
     for i in range(10):
         for channel in TEMP_CHANNELS:
-            time = test_channel(host=f"{ESP32_IP}{channel}?unit=C")
+            time = test_channel(host=f"{channel}?unit=C")
             times.append(time)
         for channel in TOGGLE_CHANNELS:
-            time = test_channel(host=f"{ESP32_IP}{channel}?toggle=ON")
+            time = test_channel(host=f"{channel}?toggle=ON")
             times.append(time)
 
     avg_time = sum(times) / len(times)
@@ -101,16 +105,16 @@ def test_invalid_channel_request():
     print("\n--------------------\nTesting invalid channel request:")
     for channel in TEMP_CHANNELS:
         test_channel(
-            host=f"{ESP32_IP}{channel}?invalidParam=C",
+            host=f"{channel}?invalidParam=C",
             expected_status=400,
         )
     for channel in TOGGLE_CHANNELS:
         test_channel(
-            host=f"{ESP32_IP}{channel}?invalidParam=ON",
+            host=f"{channel}?invalidParam=ON",
             expected_status=400,
         )
         test_channel(
-            host=f"{ESP32_IP}{channel}",
+            host=f"{channel}",
             expected_status=200,
         )
 

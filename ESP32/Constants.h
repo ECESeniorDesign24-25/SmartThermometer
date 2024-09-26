@@ -1,6 +1,11 @@
 // wifi credentials (fill out for new network)
-#define WIFI_USERNAME ""
-#define WIFI_PASSWORD ""
+#define WIFI_USERNAME "NETGEAR79"
+#define WIFI_PASSWORD "408JsgIowa"
+#define WIFI_SERVER_PORT 80
+
+// UDP
+#define MULTICAST_PORT 12345
+#define MULTICAST_IP_VAL 238
 
 // pins
 #define TEMP1_BUTTON_PIN 25
@@ -15,7 +20,7 @@
 #define D7 22
 
 // variables
-#define DEBOUNCE_DELAY 25
+#define DEBOUNCE_DELAY 50
 #define MIN_TEMP 0
 #define MAX_TEMP 2000
 #define SENSOR_OFF_TEMP -100000.0

@@ -12,8 +12,7 @@
   #include <OneWire.h>
 #endif
 
-void updateSensorStatus(int buttonPin, int& buttonState, int& lastButtonState, unsigned long& lastDebounceTime, bool& sensorStatus);
 float calculateTemperature(bool buttonStatus, int temp);
-float getTemperature(DallasTemperature sensor, const char* unit);
+float getTemperature(DallasTemperature sensor, const char* unit, bool sensorState);
 float convertTemperature(float temperature, const char* oldUnit, const char* newUnit);
 #endif

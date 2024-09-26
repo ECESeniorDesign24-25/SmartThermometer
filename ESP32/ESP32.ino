@@ -1,6 +1,4 @@
 #include <WiFi.h>
-#include <ESPmDNS.h>
-#include <string>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <LiquidCrystal.h>
@@ -14,19 +12,15 @@ float temp1 = 0.0;
 float temp2 = 0.0;
 char unit[2] = "C"; // default to celsius, make length 2 so we can null terminate
 
-bool temp1Enabled = true;
-bool temp2Enabled = true;
+bool sensor1Enabled = true;
+bool sensor2Enabled = true;
 
-int button1State = LOW;
-int button2State = LOW;
+unsigned long debounceDelay = 75;
+unsigned long lastButton1Press = 0;
+unsigned long lastButton2Press = 0;
 
-int lastButton1State = LOW;
-int lastButton2State = LOW;
-
-unsigned long lastButton1DebounceTime = 0;
-unsigned long lastButton2DebounceTime = 0;
-
-unsigned long debounceDelay = 50;
+bool temp1ButtonPressed = false;
+bool temp2ButtonPressed = false;
 
 // setup temperature sensors
 OneWire oneWire1(TEMP1_SENSOR_PIN);
@@ -38,17 +32,40 @@ DallasTemperature sensor2(&oneWire2);
 AsyncWebServer server(80);
 LiquidCrystal lcd(RS, ENABLE, D4, D5, D6, D7);
 
+// button 1 interrupt
+void IRAM_ATTR handleTemp1Button() {
+    unsigned long currentTime = millis();
+    if (currentTime - lastButton1Press > debounceDelay) {
+        temp1ButtonPressed = true;
+        lastButton1Press = currentTime;
+    }
+}
+
+// button 2 interrupt
+void IRAM_ATTR handleTemp2Button() {
+    unsigned long currentTime = millis();
+    if (currentTime - lastButton2Press > debounceDelay) {
+        temp2ButtonPressed = true;
+        lastButton2Press = currentTime;
+    }
+}
+
+
 void setup() {
   pinMode(TEMP1_BUTTON_PIN, INPUT);
   pinMode(TEMP2_BUTTON_PIN, INPUT);
   pinMode(TEMP1_SENSOR_PIN, INPUT);
   pinMode(TEMP2_SENSOR_PIN, INPUT);
 
+  // set interrupts on falling edge high to low
+  attachInterrupt(digitalPinToInterrupt(TEMP1_BUTTON_PIN), handleTemp1Button, FALLING);
+  attachInterrupt(digitalPinToInterrupt(TEMP2_BUTTON_PIN), handleTemp2Button, FALLING);
+
   sensor1.begin();
-  sensor1.setResolution(9); // use lowest precision for faster measurements
+  sensor1.setResolution(11); // high precision
 
   sensor2.begin();
-  sensor2.setResolution(9);
+  sensor2.setResolution(11);
 
   Serial.begin(115200);
   Serial.println("Initialized serial.");
@@ -56,19 +73,11 @@ void setup() {
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
+    Serial.print(F("."));
   }
-  Serial.printf("Connected to WiFi with IP Address: %s\n", WiFi.localIP().toString().c_str());
-
-  if (!MDNS.begin("esp32")) {
-    Serial.println("Error setting up MDNS.");
-    while (1) {
-      delay(1000);
-    }
-  }
-  Serial.println("mDNS started. Access with http://esp32.local");
+  Serial.printf("\nConnected to WiFi with IP Address: %s\n", WiFi.localIP().toString().c_str());
 
   server.on("/temperature1", HTTP_GET, [](AsyncWebServerRequest* request) {
-    Serial.println("Received request for temperature 1.");
     if (request->hasParam("unit")) {
       String newUnit = request->getParam("unit")->value();
 
@@ -76,16 +85,18 @@ void setup() {
       if (newUnit == "C" || newUnit == "F") {
 
         // check enabled
-        if (temp1Enabled) {
-          if (temp1 == -100000.00) {
-            temp1 = getTemperature(sensor1, unit);
+        if (sensor1Enabled) {
+
+          // if sensor was off but not disconnected, recompute
+          if (temp1 == SENSOR_OFF_TEMP || temp1 != SENSOR_DISCONNECT_TEMP) {
+            temp1 = getTemperature(sensor1, unit, sensor1Enabled);
           }
           temp1 = convertTemperature(temp1, unit, newUnit.c_str());
           strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
           unit[sizeof(unit) - 1] = '\0';
         }
         else {
-          temp1 = -100000.0;
+          temp1 = SENSOR_OFF_TEMP;
         }
       }
       request->send(200, "text/plain", String(temp1));
@@ -96,17 +107,16 @@ void setup() {
   });
 
   server.on("/temperature2", HTTP_GET, [](AsyncWebServerRequest* request) {
-    Serial.println("Received request for temperature 2.");
     if (request->hasParam("unit")) {
       String newUnit = request->getParam("unit")->value();
-
+      
       // if we have a valid unit, convert temp
       if (newUnit == "C" || newUnit == "F") {
 
         // check enabled
-        if (temp2Enabled) {
-          if (temp2 == -100000.00) {
-            temp2 = getTemperature(sensor1, unit);
+        if (sensor2Enabled) {
+          if (temp2 == SENSOR_OFF_TEMP || temp2 != SENSOR_DISCONNECT_TEMP) {
+            temp2 = getTemperature(sensor1, unit, sensor2Enabled);
           }
 
           temp2 = convertTemperature(temp2, unit, newUnit.c_str());
@@ -114,7 +124,7 @@ void setup() {
           unit[sizeof(unit) - 1] = '\0';  
         } 
         else {
-          temp2 = -100000.00;
+          temp2 = SENSOR_OFF_TEMP;
         }
       }
       request->send(200, "text/plain", String(temp2));
@@ -125,24 +135,23 @@ void setup() {
   });
 
   server.on("/toggle1", HTTP_GET, [](AsyncWebServerRequest* request) {
-    Serial.println("Received request for toggle 1.");
     if (request->hasParam("toggle")) {
       String toggle = request->getParam("toggle")->value();
 
       if (toggle == "ON") {
-        temp1Enabled = true;
+        sensor1Enabled = true;
       }
       else {
-        temp1Enabled = false;
+        sensor1Enabled = false;
       }
       request->send(200, "text/plain", "Sensor 1 toggled: " + toggle);
 
       // recompute
-      temp1 = getTemperature(sensor1, unit);
+      temp1 = getTemperature(sensor1, unit, sensor1Enabled);
     }
     else if (request->params() == 0) {
       String responseString = "OFF";
-      if (temp1Enabled) {
+      if (sensor1Enabled) {
         responseString = "ON";
       }
       request->send(200, "text/plain", responseString);    
@@ -153,24 +162,23 @@ void setup() {
   });
 
   server.on("/toggle2", HTTP_GET, [](AsyncWebServerRequest* request) {
-    Serial.println("Received request for toggle 2.");
     if (request->hasParam("toggle")) {
       String toggle = request->getParam("toggle")->value();
 
       if (toggle == "ON") {
-        temp2Enabled = true;
+        sensor2Enabled = true;
       }
       else {
-        temp2Enabled = false;
+        sensor2Enabled = false;
       }
       request->send(200, "text/plain", "Sensor 2 toggled: " + toggle);
 
       // recompute 
-      temp2 = getTemperature(sensor2, unit);
+      temp2 = getTemperature(sensor2, unit, sensor2Enabled);
     }
     else if (request->params() == 0) {
       String responseString = "OFF";
-      if (temp2Enabled) {
+      if (sensor2Enabled) {
         responseString = "ON";
       }
       request->send(200, "text/plain", responseString);    
@@ -184,29 +192,53 @@ void setup() {
   Serial.println("Server started.");
 
   lcd.begin(16, 2);
+  lcd.clear();
   pinMode(TEMP1_BUTTON_PIN, INPUT);
   pinMode(TEMP2_BUTTON_PIN, INPUT);
-  lcd.setCursor(1, 0);
-  lcd.print("Sensor 1 OFF");
-  lcd.setCursor(1, 1);
-  lcd.print("Sensor 2 OFF");
+}
+
+void displayTemperature(int sensor, float temperature) {
+  lcd.setCursor(1, sensor-1);
+  if (temperature == SENSOR_OFF_TEMP) {
+    char buffer[16];
+    sprintf(buffer, "Sensor %d: Off  ", sensor);
+    lcd.print(buffer);
+  }
+  else if (temperature == SENSOR_DISCONNECT_TEMP){
+    char buffer[16];
+    sprintf(buffer, "Sensor %d: Error", sensor);
+    lcd.print(buffer);
+  }
+  else {
+    char buffer[16];
+    sprintf(buffer, "Sensor %d: %.2f", sensor, temperature);
+    lcd.print(buffer);
+  }
 }
 
 void loop() {
 
-  updateSensorStatus(TEMP1_BUTTON_PIN, button1State, lastButton1State, lastButton1DebounceTime, temp1Enabled);
-  updateSensorStatus(TEMP2_BUTTON_PIN, button2State, lastButton2State, lastButton2DebounceTime, temp2Enabled);
+  // check if buttons have been pressed
+  if (temp1ButtonPressed) {
+      temp1ButtonPressed = !temp1ButtonPressed;  
+      sensor1Enabled = !sensor1Enabled;
+      temp1 = getTemperature(sensor1, unit, sensor1Enabled);
+      displayTemperature(1, temp1);
+  }
 
-  if (temp1Enabled) {
-    temp1 = getTemperature(sensor1, unit);
-  }
-  else {
-    temp1 = -100000.0;
-  }
-  if (temp2Enabled) {
-    temp2 = getTemperature(sensor2, unit);
-  }
-  else {
-    temp2 = -100000.0;
-  }
+  if (temp2ButtonPressed) {
+      temp2ButtonPressed = !temp2ButtonPressed;
+      sensor2Enabled = !sensor2Enabled;
+      temp2 = getTemperature(sensor2, unit, sensor2Enabled);
+      displayTemperature(2, temp2);
+    }
+
+  // update temperatures
+  temp1 = getTemperature(sensor1, unit, sensor1Enabled);
+  temp2 = getTemperature(sensor2, unit, sensor2Enabled);
+
+  displayTemperature(1, temp1);
+  displayTemperature(2, temp2);
+
+  delay(50);
 }

@@ -1,70 +1,59 @@
-# SmartThermometer
+# SmartThermometer Setup Docs
 
-### Arduino IDE Setup:
-1. Install [ESPAsyncWebServer library](https://github.com/me-no-dev/ESPAsyncWebServer/archive/master.zip), extract + rename the download to ESPAsyncWebServer, and move the folder to your Arduino/libraries directory
-2. Install [AsyncTCP library](https://github.com/me-no-dev/AsyncTCP/archive/refs/heads/master.zip), extract + rename the download to AsyncTCP, and move the folder to your Arduino/libraries directory
-3. Make sure the following libraries are downloaded into the libraries/ folder inside your sketch folder:
-    - ESPAsyncWebServer
-    - AsyncTCP
-    - DallasTemperature
-    - LiquidCrystal
+### Programming Setup (Arduino IDE):
+1. IDE Setup:
+    - Use the Arduino IDE with the esp32 board provided by Espressif Systems. <strong>Important: You MUST use Version 2.0.17</strong>, not the latest. This will allow connection to enterprise WiFi networks (such as eduroam).
+    - Select ESP32 Dev Module with the USB port that you connected to the ESP32 with.
+2. Libary Setup
+    - Install [ESPAsyncWebServer library](https://github.com/me-no-dev/ESPAsyncWebServer/archive/master.zip), extract + rename the download to ESPAsyncWebServer, and move the folder to wherever the rest of your Arduino Core libraries are stored.
+    - In Library Manager on the Arduino IDE, install the following libraries with their specified versions:
+        * AsyncTCP [1.1.4]
+        * LiquidCrystal [1.0.7]
+        * OneWire [2.3.8]
+        * DallasTemperature [3.9.0]
+3. Update the [ESP32/Constants.h](ESP32/Constants.h) file with the WiFi credentials of the network you want to connect to.
+   ```
+   // the name of your network
+   #define WIFI_SSID ""
 
+   // the username for enterprise networks (Don't change this for personal networks!)
+   #define WIFI_USERNAME ""
 
-> You might need to restart your Arduino IDE for the updates to take place
-
-#### Update the WiFiCredentials.h file with your personal username and password. Once this is updated, run the following in your terminal:
-    - git update-index --assume-unchanged ESP32/WiFiCredentials.h
-      
-> This will prevent git from adding the updated file with your personal credentials to the remote repository.
-
-### Client Services Setup:
-1. This application uses the Gmail SMTP server which requires an app-specific password. To set this password, add an app-specific password at [this link](https://myaccount.google.com/apppasswords).
-2. Once this password is set, update the set_creds.sh script with the following:
-   
-#### For Unix systems:
-    - export EMAIL_ADDRESS="[Your email address]"
-    - export EMAIL_PASSWORD="[Your app-specific password]"
-Then run the following in your terminal:
-```
-chmod +x set_creds.sh
-source ./set_creds.sh
-```
+   // the WiFi password
+   #define WIFI_PASSWORD ""
+   ```
+4. Compile & upload your code to the ESP32. Note: You may need to reset the ESP32 (clicking the "EN" button) and power cycle after upload for the new code to load.
+5. You should see serial output on your computer with a 115200 baud rate.
 
 
-#### For Windows systems:
-1. Change the name from set_creds.sh to set_creds.bat
-2. Change the "export" to "set" like so:
-```
-set EMAIL_ADDRESS="[Your email address]"
-set EMAIL_PASSWORD="[Your app-specific password]"
-```
-Then run the following in your terminal:
-```
-set_creds.bat
-```
+### GUI Setup (Python Client) TODO
 
-You must also run the following:
-```
-git update-index --assume-unchanged set_creds.sh
-```
+### Troubleshooting
+1. You can run the Tests/run_client_tests.sh file to quickly verify connection between PC and ESP32. Note: You must be on the same WiFi network as the ESP32:
+    MacOS/Unix: `./Tests/run_client_tests.sh`
+2. If the test outputs "Skipping tests", then there was an issue with the test script connecting to the ESP32. You can manuallly try to connect through your command line. In your serial console when running the ESP32 code, you should see:
+   ```
+   Connected to <WiFi Address> with IP Address: <IP Address>
+   ```
+    If you don't see this, try resetting your ESP32. It should show up again after that.
+    Then, in your terminal (MacOS/Unix), you can run the following to see if connection is possible:
+   ```
+   ping <IP Address>
+   ```
+   If connection was successful, you should see something like this in your terminal output:
+   ```
+   PING <IP Address> (<IP Address>): 56 data bytes
+   64 bytes from <IP Address>: icmp_seq=0 ttl=63 time=6.954 ms
+   ```
+3. Once you are able to ping the ESP32, you can now manually make HTTP requests to the ESP32 Web Server. Here are the supported requests:
+   - Request temperature from a sensor:
+       ```
+       curl <IP Address>/temperature1?unit=C
+       ```
+       This will return the temperature from temperature sensor 1 in celsius. You can make the same request to sensor 2 by changing temperature1 to temperature2, and you can change the unit to fahrenheit by changing unit=C to unit=F.
+   - Toggle a sensor on or off:
+     ```
+     curl <IP Address>/toggle1?toggle=OFF
+     ```
+     This will turn temperature sensor 1 off. You can make the same request to sensor 2 by changing temperature1 to temperature2, and you can turn the sensor back on by changing toggle=ON.
 
-
-### Testing:
-The Tests/ directory handles the automated testing suite for various functions across the source code. 
-
-To test ESP functions, add a test to the ESPTests.cpp file. Note: if you test a function that depends on an Arduino library, you must add a Mock library to the lib/ directory (See ArduinoMock.cpp).
-
-To test Client functions, add a test to the ClientTests.py file. Note: any test that depends on reading from the ESP32 server should skip if the ESP32 is not connected.
-
-All tests are run through run_tests.sh, which gets called in a GitHub Actions script on each new PR.
-
-### How to talk to the server:
-You can make HTTP requests to http://192.168.1.25 (faster) or http://esp32.local (slower). The available channels are:
-1. /temperature1 (returns temperature from temperature sensor #1 on GET, supports parameter "unit" [C or F])
-2. /temperature2 (returns temperature from temperature sensor #2 on GET, supports parameter "unit" [C or F])
-3. /toggle1 (sets temperature sensor #1 status on GET, supports parameter "toggle" [ON or OFF])
-4. /toggle2 (sets temperature sensor #2 status on GET, supports parameter "toggle" [ON or OFF])
-
->Example:
-> curl -X GET http://192.168.1.25/temperature1?unit=C
-> curl -X GET http://192.168.1.25/toggle1?toggle=ON

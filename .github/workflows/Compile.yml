@@ -1,0 +1,40 @@
+name: Compile
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+        with:
+          version: '0.31.0'
+
+      - name: Install ESP32 Core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@3.0.4
+
+      - name: Install required libraries
+        run: |
+          arduino-cli lib install "WiFi"
+          arduino-cli lib install "AsyncTCP"
+          arduino-cli lib install "ESPAsyncWebServer"
+          arduino-cli lib install "LiquidCrystal"
+          arduino-cli lib install "OneWire"
+          arduino-cli lib install "DallasTemperature"
+
+      - name: Compile
+        run: |
+          arduino-cli compile --fqbn esp32:esp32:esp32 ESP32/ESP32.ino

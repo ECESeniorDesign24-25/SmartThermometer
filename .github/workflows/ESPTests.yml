@@ -1,4 +1,4 @@
-name: Run ESP Tests
+name: ESP Tests
 
 on:
   pull_request:

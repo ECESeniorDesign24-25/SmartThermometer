@@ -37,7 +37,8 @@ bool wifiConnected = true;
 bool personalNetwork = true;
 
 // set up UDP multicast to broadcast the current dynamic IP to 
-// other devices on the network (python client) -- doesnt work on eduroam
+// other devices on the network (python client) -- only works for personal networks
+WiFiUDP udp;
 const IPAddress multicastIP(MULTICAST_IP_VAL, 0, 0, 0);
 const uint16_t multicastPort = MULTICAST_PORT;
 

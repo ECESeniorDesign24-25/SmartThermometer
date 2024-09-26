@@ -30,10 +30,14 @@ jobs:
         run: |
             arduino-cli lib update-index
             arduino-cli lib install "AsyncTCP@1.1.4"
-            arduino-cli lib install "ESPAsyncWebServer@3.0.6"
             arduino-cli lib install "LiquidCrystal@1.0.7"
             arduino-cli lib install "OneWire@2.3.8"
             arduino-cli lib install "DallasTemperature@3.9.0"
+            
+            mkdir -p /home/runner/Arduino/libraries
+            wget https://github.com/me-no-dev/ESPAsyncWebServer/archive/master.zip -O /home/runner/Arduino/libraries/ESPAsyncWebServer.zip
+            unzip /home/runner/Arduino/libraries/ESPAsyncWebServer.zip -d /home/runner/Arduino/libraries/
+            mv /home/runner/Arduino/libraries/ESPAsyncWebServer-master /home/runner/Arduino/libraries/ESPAsyncWebServer
 
       - name: Compile
         run: |

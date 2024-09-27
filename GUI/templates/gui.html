@@ -286,7 +286,7 @@
                 const currentTemperature = data.temperature || null;
 
                 document.getElementById('temperatureStatus1').textContent =
-                    currentTemperature !== null ?
+                    currentTemperature !== null || currentTemperature !== "None" || currentTemperature !== -110000.0 ?
                     `Sensor 1 Temperature: ${currentTemperature} °C` :
                     'Sensor 1 is unplugged';
 
@@ -305,7 +305,7 @@
                 const currentTemperature = data.temperature || null;
 
                 document.getElementById('temperatureStatus2').textContent =
-                    currentTemperature !== null ?
+                    currentTemperature !== null || currentTemperature !== "None" || currentTemperature !== -110000.0 ?
                     `Sensor 2 Temperature: ${currentTemperature} °C` :
                     'Sensor 2 is unplugged';
 

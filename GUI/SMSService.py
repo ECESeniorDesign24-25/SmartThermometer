@@ -3,12 +3,12 @@ from Receiver import Receiver
 from Constants import EMAIL_ADDRESS, EMAIL_PASSWORD, CARRIERS
 
 
-def SendSMS(client, message: str):
+def SendSMS(client_phone, client_carrier, message: str):
     """
     Sends an SMS to the given receiver phone number
     """
     try:
-        receiverNumber = f"{client.get_phone_number()}{CARRIERS[client.get_carrier()]}"
+        receiverNumber = f"{client_phone}{CARRIERS[client_carrier]}"
         if not EMAIL_ADDRESS or EMAIL_ADDRESS == "":
             print(
                 "Invalid 'from' email address. Set it by running: \n\texport EMAIL_ADDRESS='[your email address]'"

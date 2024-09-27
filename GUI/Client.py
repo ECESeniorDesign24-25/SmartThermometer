@@ -50,8 +50,8 @@ class ReceivingClient:
                     f"Temperature is too high: {temperature}",
                 )
                 SendSMS(
-                    self.email_address,
-                    # receiver.cellCarrier,
+                    self.phone_number,
+                    self.carrier,
                     f"Temperature is too high: {temperature}",
                 )
             elif temperature < self.min_temp and temperature != float(
@@ -62,8 +62,8 @@ class ReceivingClient:
                     f"Temperature is too low: {temperature}",
                 )
                 SendSMS(
-                    self.email_address,
-                    # receiver.cellCarrier,
+                    self.phone_number,
+                    self.carrier,
                     f"Temperature is too low: {temperature}",
                 )
         if temperature == float(OFF_TEMPERATURE):

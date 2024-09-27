@@ -18,15 +18,13 @@ def home():
 
 @app.route('/temperature1', methods=['GET'])
 def handle_temperature_from_sensor1():
-    temp = PollTemperatureFromESP(sensorNumber=1, unit="C")
-    main_client.ProcessTemperature(1, 'C')
+    temp = main_client.ProcessTemperature(1, 'C')
     print("sensor 1", temp)
     return jsonify(temperature=temp)
 
 @app.route('/temperature2', methods=['GET'])
 def handle_temperature_from_sensor2():
-    temp = PollTemperatureFromESP(sensorNumber=2, unit="C")
-    main_client.ProcessTemperature(2, 'C')
+    temp = main_client.ProcessTemperature(2, 'C')
     # return response.text
     print("sensor 2", temp)
     return jsonify(temperature=temp)
@@ -35,8 +33,9 @@ def handle_temperature_from_sensor2():
 @app.route('/power_off', methods=['GET'])
 def handle_power_off():
     try:
-        requests.post(f"{ESP32_SERVER}/toggle1?toggle=OFF")
-        requests.post(f"{ESP32_SERVER}/toggle2?toggle=OFF")
+        print("turning off")
+        requests.get(f"{ESP32_SERVER}/toggle1?toggle=OFF")
+        requests.get(f"{ESP32_SERVER}/toggle2?toggle=OFF")
     except requests.exceptions.ConnectionError:
         return {"status": "Failed"}, 500
 
@@ -45,8 +44,9 @@ def handle_power_off():
 @app.route('/power_on', methods=['GET'])
 def handle_power_on():
     try:
-        requests.post(f"{ESP32_SERVER}/toggle1?toggle=ON")
-        requests.post(f"{ESP32_SERVER}/toggle2?toggle=ON")
+        print("turning On")
+        requests.get(f"{ESP32_SERVER}/toggle1?toggle=ON")
+        requests.get(f"{ESP32_SERVER}/toggle2?toggle=ON")
     except requests.exceptions.ConnectionError:
         return {"status": "Failed"}, 500
 

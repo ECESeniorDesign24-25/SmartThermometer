@@ -4,7 +4,7 @@ from email.message import EmailMessage
 from Constants import EMAIL_ADDRESS, EMAIL_PASSWORD
 
 
-def SendEmail(receiver: Receiver, subject: str, message: str):
+def SendEmail(client, subject: str, message: str):
     """
     Sends an email to the given receiver email address
     """
@@ -25,7 +25,7 @@ def SendEmail(receiver: Receiver, subject: str, message: str):
 
         msg["Subject"] = subject
         msg["From"] = EMAIL_ADDRESS
-        msg["To"] = receiver.emailAddress
+        msg["To"] = client.get_email_address()
 
         s = smtplib.SMTP_SSL(host="smtp.gmail.com", port=465)
         s.login(EMAIL_ADDRESS, EMAIL_PASSWORD)

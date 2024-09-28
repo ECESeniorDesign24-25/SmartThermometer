@@ -25,7 +25,6 @@
             margin: 0 auto;
         }
 
-        /* Individual forms - align elements in one line */
         form {
             display: flex;
             align-items: center;
@@ -70,16 +69,41 @@
         /* Status text styling */
         .status {
             text-align: center;
+            justify-content: center;
             margin-top: 20px;
             font-size: 1.3em;
         }
 
         /* Chart container styling */
         .chart-container {
+            {#position: relative;#}
+            {#width: 1000px;#}
+            {#height: 600px;#}
+            {#margin: 0 auto;#}
+            {#width: 1000px;#}
+            {#display: flex;#}
+            {#justify-content: center;#}
+            overflow-x: auto; /* Allow horizontal scrolling */
+            width: 100%; /* Set to your desired width */
             position: relative;
-            width: 1000px;
-            height: 600px;
-            margin: 0 auto;
+        }
+
+        .small-column {
+            width: 5px;
+        }
+
+        .large-column {
+            max-width: 1000px;
+            overflow-x: auto;
+            white-space: nowrap;
+            {#margin-left: auto;#}
+            {#margin-right: 0;#}
+        }
+
+        .chartcontainer {
+            {#max-width: 100%;#}
+            width: calc(1000px - 200px);
+            height: 700px;
         }
 
         canvas {
@@ -137,7 +161,14 @@
 
         <!-- Chart -->
         <div class="chart-container">
-            <canvas id="temperatureChart"></canvas>
+            <div class="small-column">
+                <canvas id="scrollChart"></canvas>
+            </div>
+            <div class="large-column">
+                <div class="chartcontainer">
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -191,14 +222,14 @@
                 event.preventDefault();
 
                 if (currentScale === "C") {
-                        currentScale = "F";
-                        temperatureChart.options.scales.yCelsius.display = false;
-                        temperatureChart.options.scales.yFahrenheit.display = true;
+                    currentScale = "F";
+                    temperatureChart.options.scales.yCelsius.display = false;
+                    temperatureChart.options.scales.yFahrenheit.display = true;
                 } else {
-                        currentScale = "C";
-                        temperatureChart.options.scales.yCelsius.display = true;
-                        temperatureChart.options.scales.yFahrenheit.display = false;
-                    }
+                    currentScale = "C";
+                    temperatureChart.options.scales.yCelsius.display = true;
+                    temperatureChart.options.scales.yFahrenheit.display = false;
+                }
                 temperatureChart.update();
                 $.get("/switch_scale", function (response) {
                     alert("Scale Switched");
@@ -219,19 +250,19 @@
                 labels: [],
                 datasets: [
                     {
-                label: 'Sensor 1 Temperature',
+                {#label: 'Sensor 1 Temperature',#}
                 data: [],
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 2,
+                {#borderColor: 'rgba(75, 192, 192, 1)',#}
+                {#borderWidth: 2,#}
                 fill: false,
                 yAxisID: 'yCelsius',
                 hidden: false
             },
             {
-                label: 'Sensor 2 Temperature',
+                {#label: 'Sensor 2 Temperature',#}
                 data: [],
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 2,
+                {#borderColor: 'rgba(255, 99, 132, 1)',#}
+                {#borderWidth: 2,#}
                 fill: false,
                 yAxisID: 'yCelsius',
                 hidden: false
@@ -250,9 +281,20 @@
                             text: 'Time (seconds)'
                         },
                         min: 0,
-                        max: 300,
+                        {#max: 300,#}
+                        {#ticks: {#}
+                        {#    stepSize: 20,  // Set the interval between ticks to 60 seconds#}
+                        {#    callback: function(value) {#}
+                        {#        return value % 20 === 0 ? value : '';  // Show only multiples of 60#}
+                        {#    }#}
+                        {#,#}
+                    },
+                    y : {
                         ticks: {
-                            autoSkip: false
+                            display: false,
+                        },
+                        grid: {
+                            display: false
                         },
                     },
                     yCelsius: {
@@ -271,7 +313,7 @@
                         max: 122,
                         display: false,
                         afterFit: (c) => {
-                            c.width = 40;
+                            c.width = 15;
                         },
                         title: {
                             display: true,
@@ -279,55 +321,76 @@
                         }
                     }
                 },
+                maintainAspectRatio: false,
                 plugins: {
-                    zoom: {
-                        pan: {
-                            enabled: true,
-                            mode: 'x', // Enable horizontal panning
-                            rangeMin: {
-                                x: 0
-                            },
-                            rangeMax: {
-                                x: 300
-                            }
-                        },
-                        zoom: {
-                            enabled: true,
-                            mode: 'x', // Enable horizontal zooming
-                            rangeMin: {
-                                x: 0
-                            },
-                            rangeMax: {
-                                x: 300
-                            }
-                        }
+                    legend: {
+                        display: false
                     }
-                },
-                {#maintainAspectRatio: false,#}
-                {#layout: {#}
-                {#    padding: {#}
-                {#        bottom: 36#}
-                {#    }#}
-                {#,#}
-                {#plugins: {#}
-                {#    legend: {#}
-                {#        display: false#}
-                {#    }#}
-                {##}
-                {#pan: {#}
-                {#    enabled: true,#}
-                {#    mode: 'x',#}
-                {##}
-                {#zoom: {#}
-                {#    enabled: true,#}
-                {#    mode: 'x',#}
-                {##}
+                }
             }
         });
+        const ctx2 = document.getElementById('scrollChart').getContext('2d');
+
+        const scrollChart = new Chart(ctx2, {
+            type: 'scatter',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                {#label: 'Sensor 1 Temperature',#}
+                data: [],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                fill: false,
+                yAxisID: 'yCelsius',
+                hidden: true
+            },
+            {
+                {#label: 'Sensor 2 Temperature',#}
+                data: [],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 2,
+                fill: false,
+                yAxisID: 'yCelsius',
+                hidden: true
+            },
+                ]
+            },
+            options: {
+                layout: {
+                    padding: {
+                        bottom: 36
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            display: false
+                        },
+                        gridLines: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        afterFit: (c) => {
+                            c.width = 0;
+                        }
+                    }
+                }
+            }
+        })
 
         async function updateChart(sensor1Temperature, sensor2Temperature) {
 
             temperatureChart.data.datasets[0].data.forEach(function(point) {
+                point.x += 1;
+            });
+            scrollChart.data.datasets[0].data.forEach(function(point) {
                 point.x += 1;
             });
 
@@ -335,12 +398,54 @@
                 point.x += 1;
             });
 
+            scrollChart.data.datasets[0].data.forEach(function(point) {
+                point.x += 1;
+            });
+
             if (sensor1Temperature !== -110000.0) {
                 temperatureChart.data.datasets[0].data.push({ x: 0, y: sensor1Temperature});
                 temperatureChart.data.datasets[1].data.push({ x: 0, y: sensor2Temperature});
+                scrollChart.data.datasets[0].data.push({ x: 0, y: sensor1Temperature});
+                scrollChart.data.datasets[1].data.push({ x: 0, y: sensor2Temperature});
             }
 
-            temperatureChart.update();
+            timeElapsed += 1;
+
+            if (timeElapsed > 20) {
+                temperatureChart.options.scales.x.ticks.stepSize = 20;
+                temperatureChart.options.scales.x.ticks.callback = function(value) {return value % 20 === 0 ? value : ''};
+                temperatureChart.options.scales.x.max = timeElapsed;
+            }
+
+            const chartcont = document.querySelector('.chartcontainer');
+            const num_points1 = temperatureChart.data.datasets[0].data.length;
+            const num_points2 = temperatureChart.data.datasets[1].data.length;
+
+            if (num_points1 > 300 || num_points2 > 300) {
+                {#let bigger = num_points1 > num_points2 ? num_points1 : num_points2;#}
+                let bigger = Math.max(num_points2, num_points1);
+                const chartwidth = 800 + ((bigger - 300) * 200);
+                chartcont.style.width = `${chartwidth}px`;
+            }
+
+            if (timeElapsed > MAX_TIME) {
+                // Remove oldest data to maintain a 300 second window
+                temperatureChart.options.scales.x.min = 0;
+                temperatureChart.options.scales.x.max = timeElapsed;
+                scrollChart.options.scales.x.min = 0;
+                scrollChart.options.scales.x.max = timeElapsed;
+
+                // Trigger scrollbar after reaching 300 seconds
+                {#document.querySelector('.large-column').style.overflowX = 'scroll';#}
+            } else {
+                // Prevent scroll before 300 seconds
+                temperatureChart.options.scales.x.min = 0;
+                temperatureChart.options.scales.x.max = MAX_TIME;
+                {#document.querySelector('.large-column').style.overflowX = 'hidden';#}
+            }
+
+            temperatureChart.update("none");
+            scrollChart.update("none");
         }
 
         async function fetchTemperatureData() {
@@ -363,7 +468,7 @@
                 } else {
                     sensor1Temp = sensor1Temperature;
                 }
-                document.getElementById('temperatureStatus1').textContent = `Sensor 1 Temperature: ${sensor1Temp} °${currentScale}`
+                document.getElementById('temperatureStatus1').textContent = `Sensor 1 Temperature (Red): ${sensor1Temp} °${currentScale}`
             } else {
                 document.getElementById('temperatureStatus1').textContent = 'Sensor 1: No Data Available';
 
@@ -379,7 +484,7 @@
                 } else {
                     sensor2Temp = sensor2Temperature;
                 }
-                document.getElementById('temperatureStatus2').textContent = `Sensor 2 Temperature: ${sensor2Temp} °${currentScale}`
+                document.getElementById('temperatureStatus2').textContent = `Sensor 2 Temperature (Blue): ${sensor2Temp} °${currentScale}`
             } else {
                 document.getElementById('temperatureStatus2').textContent = 'Sensor 2: No Data Available';
 
@@ -397,7 +502,7 @@
             return (fahrenheit - 32) * 5 / 9;
         }
 
-        setInterval(fetchTemperatureData, 1000);
+        setInterval(fetchTemperatureData, 600);
     </script>
 </body>
 </html>

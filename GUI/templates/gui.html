@@ -126,6 +126,9 @@
             <form method="POST" action="/power_off">
                 <button type="submit">Turn Sensors Off</button>
             </form>
+            <form method="POST" action="/switch_scale">
+                <button type="submit">Switch Scale</button>
+            </form>
         </div>
 
         <div class="status" id="temperatureStatus1">Sensor 1 Temperature: Loading...</div>
@@ -182,11 +185,25 @@
                     alert("Error turning on sensors!");
                 });
             });
+
+            $("form[action='/switch_scale']").submit(function(event) {
+                event.preventDefault();
+                if (currentScale === "C") {
+                    currentScale = "F";
+                } else {
+                    currentScale = "C";
+                }
+                $.get("/switch_scale", function (response) {
+                    alert("Scale Switched");
+                }).fail(function () {
+                    alert("Error switching scale!");
+                });
+            });
         });
 
-        // Chart code (no changes needed)
         const ctx = document.getElementById('temperatureChart').getContext('2d');
         let timeElapsed = 0;
+        let currentScale = "C";
         const MAX_TIME = 300;
         const temperatureChart = new Chart(ctx, {
             type: 'line',
@@ -250,7 +267,7 @@
             }
         });
 
-                async function updateChart(sensor1Temperature, sensor2Temperature) {
+        async function updateChart(sensor1Temperature, sensor2Temperature) {
             if (timeElapsed < MAX_TIME) {
                 timeElapsed++;
             }
@@ -263,11 +280,11 @@
                 point.x += 1;
             });
 
-            if (sensor1Temperature !== null && sensor1Temperature !== -110000.0) {
+            if (sensor1Temperature !== -110000.0) {
                 temperatureChart.data.datasets[0].data.push({ x: 0, y: sensor1Temperature });
             }
 
-            if (sensor2Temperature !== null && sensor2Temperature !== -110000.0) {
+            if (sensor2Temperature !== -110000.0) {
                 temperatureChart.data.datasets[1].data.push({ x: 0, y: sensor2Temperature });
             }
 
@@ -284,11 +301,21 @@
                 const response = await fetch('/temperature1');
                 const data = await response.json();
                 const currentTemperature = data.temperature || null;
+                if (currentTemperature === -110000.0) {
+                    document.getElementById('temperatureStatus1').textContent = 'Sensor 1 is unplugged'
+                }
+                if (currentTemperature != null) {
+                    document.getElementById('temperatureStatus1').textContent = `Sensor 1 Temperature: ${currentTemperature} °${currentScale}`
+                }
+                else
+                {
+                    document.getElementById('temperatureStatus1').textContent = 'Sensor 1: No Data Available';
 
-                document.getElementById('temperatureStatus1').textContent =
-                    currentTemperature !== null || currentTemperature !== "None" || currentTemperature !== -110000.0 ?
-                    `Sensor 1 Temperature: ${currentTemperature} °C` :
-                    'Sensor 1 is unplugged';
+                }
+                {#document.getElementById('temperatureStatus1').textContent =#}
+                {#    currentTemperature !== null && currentTemperature !== "None" && currentTemperature !== -110000.0 ?#}
+                {#    `Sensor 1 Temperature: ${currentTemperature} °${currentScale}` :#}
+                {#    'Sensor 1 is unplugged';#}
 
                 return currentTemperature;
 
@@ -303,11 +330,22 @@
                 const response = await fetch('/temperature2');
                 const data = await response.json();
                 const currentTemperature = data.temperature || null;
+                if (currentTemperature === -110000.0) {
+                    document.getElementById('temperatureStatus2').textContent = 'Sensor 2 is unplugged'
+                }
+                if (currentTemperature != null) {
+                    document.getElementById('temperatureStatus2').textContent = `Sensor 2 Temperature: ${currentTemperature} °${currentScale}`
+                }
+                else
+                {
+                    document.getElementById('temperatureStatus2').textContent = 'Sensor 2: No Data Available';
 
-                document.getElementById('temperatureStatus2').textContent =
-                    currentTemperature !== null || currentTemperature !== "None" || currentTemperature !== -110000.0 ?
-                    `Sensor 2 Temperature: ${currentTemperature} °C` :
-                    'Sensor 2 is unplugged';
+                }
+                {#if (currentTemperature == )#}
+                {#document.getElementById('temperatureStatus2').textContent =#}
+                {#    currentTemperature !== null && currentTemperature !== "None" && currentTemperature !== -110000.0 ?#}
+                {#    `Sensor 2 Temperature: ${currentTemperature} °${currentScale}` :#}
+                {#    'Sensor 2 is unplugged';#}
 
                 return currentTemperature;
 
@@ -321,6 +359,15 @@
             const sensor1Temperature = await fetchTemperature1Data();
             const sensor2Temperature = await fetchTemperature2Data();
             await updateChart(sensor1Temperature, sensor2Temperature);
+        }
+
+        // Conversion functions
+        function celsiusToFahrenheit(celsius) {
+            return (celsius * 9 / 5) + 32;
+        }
+
+        function fahrenheitToCelsius(fahrenheit) {
+            return (fahrenheit - 32) * 5 / 9;
         }
 
         setInterval(fetchAndUpdateData, 1000);

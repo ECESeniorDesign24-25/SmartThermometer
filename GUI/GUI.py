@@ -12,22 +12,26 @@ app = Flask(__name__)
 
 main_client = ReceivingClient()
 
+global unit
+unit = 'C'
+
 @app.route('/')
 def home():
     return render_template("gui.html")
 
 @app.route('/temperature1', methods=['GET'])
 def handle_temperature_from_sensor1():
-    temp = main_client.ProcessTemperature(1, 'C')
+    temp = main_client.ProcessTemperature(1, unit)
+    temp = 20
     print("sensor 1", temp)
-    return jsonify(temperature=temp)
+    return jsonify(temperature=temp, tempscale=unit)
 
 @app.route('/temperature2', methods=['GET'])
 def handle_temperature_from_sensor2():
-    temp = main_client.ProcessTemperature(2, 'C')
-    # return response.text
+    temp = main_client.ProcessTemperature(2, unit)
+    temp = 30
     print("sensor 2", temp)
-    return jsonify(temperature=temp)
+    return jsonify(temperature=temp, tempscale=unit)
 
 
 @app.route('/power_off', methods=['GET'])
@@ -69,19 +73,25 @@ def handle_user_info():
 def handle_min_max():
     min_temp = request.args.get('min')
     max_temp = request.args.get('max')
-    os.environ["MIN_TEMP"] = str(min_temp)
-    os.environ["MAX_TEMP"] = str(max_temp)
+    # os.environ["MIN_TEMP"] = str(min_temp)
+    # os.environ["MAX_TEMP"] = str(max_temp)
     main_client.set_max_temp(float(max_temp))
     main_client.set_min_temp(float(min_temp))
     print(min_temp, max_temp)
     return {"status": "Success"}, 201
 
 
-# @app.route('switch_scale', methods=['POST'])
-# def handle_switch_scale():
-#     pass
+@app.route('/switch_scale', methods=['GET'])
+def handle_switch_scale():
+    global unit
+    if unit == "C":
+        unit = "F"
+    else:
+        unit = "C"
+    return {"status": "Success", "unit": unit}, 201
+
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(threaded=True)
 

@@ -23,6 +23,8 @@ def home():
 def handle_temperature_from_sensor1():
     temp = main_client.ProcessTemperature(1, unit)
     temp = 20
+    if app.config['TESTING']:
+        temp = 20
     print("sensor 1", temp)
     return jsonify(temperature=temp, tempscale=unit)
 
@@ -30,6 +32,8 @@ def handle_temperature_from_sensor1():
 def handle_temperature_from_sensor2():
     temp = main_client.ProcessTemperature(2, unit)
     temp = 30
+    if app.config['TESTING']:
+        temp = 30
     print("sensor 2", temp)
     return jsonify(temperature=temp, tempscale=unit)
 

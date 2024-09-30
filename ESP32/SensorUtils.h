@@ -13,6 +13,6 @@
 #endif
 
 float calculateTemperature(bool buttonStatus, int temp);
-float getTemperature(DallasTemperature sensor, const char* unit, bool sensorState);
-float convertTemperature(float temperature, const char* oldUnit, const char* newUnit);
+float getTemperature(DallasTemperature sensor, String unit, bool sensorState);
+float convertTemperature(float temperature, String oldUnit, String newUnit);
 #endif

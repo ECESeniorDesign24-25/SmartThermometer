@@ -116,8 +116,8 @@ void setupServer() {
           else {
             temp1 = SENSOR_OFF_TEMP;
           }
+          request->send(200, "text/plain", String(temp1));
         }
-        request->send(200, "text/plain", String(temp1));
       }
       else {
         request->send(400, "text/plain", "Invalid parameters.");
@@ -134,7 +134,7 @@ void setupServer() {
           // check enabled
           if (sensor2Enabled) {
             if (temp2 == SENSOR_OFF_TEMP || temp2 != SENSOR_DISCONNECT_TEMP) {
-              temp2 = getTemperature(sensor1, unit, sensor2Enabled);
+              temp2 = getTemperature(sensor2, unit, sensor2Enabled);
             }
 
             temp2 = convertTemperature(temp2, unit, newUnit.c_str());
@@ -144,8 +144,8 @@ void setupServer() {
           else {
             temp2 = SENSOR_OFF_TEMP;
           }
+          request->send(200, "text/plain", String(temp2));
         }
-        request->send(200, "text/plain", String(temp2));
       }
       else {
         request->send(400, "text/plain", "Invalid parameters.");

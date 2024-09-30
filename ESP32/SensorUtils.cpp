@@ -16,7 +16,7 @@ float calculateTemperature(bool buttonStatus, int temp) {
     return temp;
 }
 
-float getTemperature(DallasTemperature sensor, const char* unit, bool sensorState) {
+float getTemperature(DallasTemperature sensor, String unit, bool sensorState) {
   float temperature;
   // if off
   if (!sensorState) {
@@ -25,7 +25,7 @@ float getTemperature(DallasTemperature sensor, const char* unit, bool sensorStat
   else {
     sensor.requestTemperatures();
     // check unit
-    if (strcmp(unit, "F") == 0) {
+    if (unit == "F") {
       temperature = sensor.getTempFByIndex(0);
 
       // if disconnected
@@ -45,13 +45,13 @@ float getTemperature(DallasTemperature sensor, const char* unit, bool sensorStat
   return temperature;
 }
 
-float convertTemperature(float temperature, const char* oldUnit, const char* newUnit) {
+float convertTemperature(float temperature, String oldUnit, String newUnit) {
 
     // if no unit change or fail condition
-    if (strcmp(oldUnit, newUnit) == 0 || temperature == SENSOR_OFF_TEMP || temperature == SENSOR_DISCONNECT_TEMP) {
+    if (oldUnit == newUnit || temperature == SENSOR_OFF_TEMP || temperature == SENSOR_DISCONNECT_TEMP) {
         return temperature;
     }
-    else if (strcmp(oldUnit, "C") == 0) {
+    else if (oldUnit == "C") {
         return 32 + (temperature * 1.8);
     } 
     else {

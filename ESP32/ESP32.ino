@@ -12,7 +12,7 @@ const char* password = WIFI_PASSWORD;
 
 float temp1 = 0.0;
 float temp2 = 0.0;
-char unit[2] = "C"; // default to celsius, make length 2 so we can null terminate
+String unit = "C"; // default to celsius
 
 bool sensor1Enabled = true;
 bool sensor2Enabled = true;
@@ -104,14 +104,8 @@ void setupServer() {
 
           // check enabled
           if (sensor1Enabled) {
-
-            // if sensor was off but not disconnected, recompute
-            if (temp1 == SENSOR_OFF_TEMP || temp1 != SENSOR_DISCONNECT_TEMP) {
-              temp1 = getTemperature(sensor1, unit, sensor1Enabled);
-            }
-            temp1 = convertTemperature(temp1, unit, newUnit.c_str());
-            strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
-            unit[sizeof(unit) - 1] = '\0';
+            temp1 = convertTemperature(temp1, unit, newUnit);
+            unit = newUnit;
           }
           else {
             temp1 = SENSOR_OFF_TEMP;
@@ -133,17 +127,12 @@ void setupServer() {
 
           // check enabled
           if (sensor2Enabled) {
-            if (temp2 == SENSOR_OFF_TEMP || temp2 != SENSOR_DISCONNECT_TEMP) {
-              temp2 = getTemperature(sensor2, unit, sensor2Enabled);
-            }
-
-            temp2 = convertTemperature(temp2, unit, newUnit.c_str());
-            strncpy(unit, newUnit.c_str(), sizeof(unit) - 1);
-            unit[sizeof(unit) - 1] = '\0';  
+            temp2 = convertTemperature(temp2, unit, newUnit);
           } 
           else {
             temp2 = SENSOR_OFF_TEMP;
           }
+          unit = newUnit;
           request->send(200, "text/plain", String(temp2));
         }
       }
@@ -163,9 +152,6 @@ void setupServer() {
           sensor1Enabled = false;
         }
         request->send(200, "text/plain", "Sensor 1 toggled: " + toggle);
-
-        // recompute
-        temp1 = getTemperature(sensor1, unit, sensor1Enabled);
       }
       else if (request->params() == 0) {
         String responseString = "OFF";
@@ -191,9 +177,6 @@ void setupServer() {
           sensor2Enabled = false;
         }
         request->send(200, "text/plain", "Sensor 2 toggled: " + toggle);
-
-        // recompute 
-        temp2 = getTemperature(sensor2, unit, sensor2Enabled);
       }
       else if (request->params() == 0) {
         String responseString = "OFF";
@@ -248,20 +231,20 @@ void setup() {
 }
 
 void displayTemperature(int sensor, float temperature) {
-  lcd.setCursor(1, sensor-1);
+  lcd.setCursor(0, sensor-1);
   if (temperature == SENSOR_OFF_TEMP) {
     char buffer[16];
-    sprintf(buffer, "Sensor %d: Off  ", sensor);
+    sprintf(buffer, "Sensor%d: Off   ", sensor);
     lcd.print(buffer);
   }
   else if (temperature == SENSOR_DISCONNECT_TEMP){
     char buffer[16];
-    sprintf(buffer, "Sensor %d: Error", sensor);
+    sprintf(buffer, "Sensor%d: Error ", sensor);
     lcd.print(buffer);
   }
   else {
     char buffer[16];
-    sprintf(buffer, "Sensor %d: %.2f", sensor, temperature);
+    sprintf(buffer, "Sensor%d:%.2f%s", sensor, temperature, unit);
     lcd.print(buffer);
   }
 }

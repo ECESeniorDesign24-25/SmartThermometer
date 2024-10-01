@@ -60,14 +60,6 @@ void IRAM_ATTR handleTemp2Button() {
     }
 }
 
-void sendIP() {
-  // sends packet with ip to listening devices on the local network
-  String ip = WiFi.localIP().toString();
-  udp.beginPacket(multicastIP, multicastPort);
-  udp.print(ip);
-  int packetResult = udp.endPacket();
-}
-
 void setupServer() {
   Serial.printf("\nAttempting to connect to %s...\n", ssid);
   if (strcmp(WIFI_USERNAME, "") != 0) { // enterprise network (eduroam)
@@ -250,11 +242,6 @@ void displayTemperature(int sensor, float temperature) {
 }
 
 void loop() {
-
-  // broadcast ip for any new clients if connected to wifi
-  if (wifiConnected && personalNetwork) {
-    sendIP();
-  }
 
   // check if buttons have been pressed
   if (temp1ButtonPressed) {

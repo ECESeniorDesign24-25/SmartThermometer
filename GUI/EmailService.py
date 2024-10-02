@@ -4,7 +4,7 @@ from email.message import EmailMessage
 from Constants import EMAIL_ADDRESS, EMAIL_PASSWORD
 
 
-def SendEmail(client_email, subject: str, message: str):
+def SendEmail(client_email: str, subject: str, message: str):
     """
     Sends an email to the given receiver email address
     """

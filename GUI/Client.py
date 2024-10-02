@@ -12,6 +12,7 @@ class ReceivingClient:
         self.carrier = carrier
         self.max_temp = 30
         self.min_temp = 19
+        self.num_messages = 0
 
     def set_email_address(self, email_address: str):
         self.email_address = email_address
@@ -37,6 +38,9 @@ class ReceivingClient:
     def get_email_address(self):
         return self.email_address
 
+    def reset_num_messages(self):
+        self.num_messages = 0
+
     def ProcessTemperature(self, sensor: int = 1, unit: str = "C"):
         """
         Polls the temperature from the ESP32, and sends an email and SMS if the temperature exceeds MAX_TEMPERATURE
@@ -44,28 +48,38 @@ class ReceivingClient:
         temperature = PollTemperatureFromESP(sensorNumber=sensor, unit=unit)
         if temperature is not None:
             if temperature > self.max_temp and temperature != -110000.0 and temperature != -100000.0:
-                SendEmail(
-                    self.email_address,
-                    "High Temperature Alert",
-                    f"Temperature is too high: {temperature}",
-                )
-                SendSMS(
-                    self.phone_number,
-                    self.carrier,
-                    f"Temperature is too high: {temperature}",
-                )
+                self.num_messages += 1
+                if self.num_messages <= 1:
+                    SendEmail(
+                        self.email_address,
+                        "High Temperature Alert",
+                        f"Temperature is too high: {temperature}",
+                    )
+                    SendSMS(
+                        self.phone_number,
+                        self.carrier,
+                        f"Temperature is too high: {temperature}",
+                    )
+                else:
+                    pass
             elif temperature < self.min_temp and temperature != float(
                     OFF_TEMPERATURE) and temperature != -110000.0 and temperature != -100000.0:
-                SendEmail(
-                    self.email_address,
-                    "Low Temperature Alert",
-                    f"Temperature is too low: {temperature}",
-                )
-                SendSMS(
-                    self.phone_number,
-                    self.carrier,
-                    f"Temperature is too low: {temperature}",
-                )
+                self.num_messages += 1
+                if self.num_messages <= 1:
+                    SendEmail(
+                        self.email_address,
+                        "Low Temperature Alert",
+                        f"Temperature is too low: {temperature}",
+                    )
+                    SendSMS(
+                        self.phone_number,
+                        self.carrier,
+                        f"Temperature is too low: {temperature}",
+                    )
+                else:
+                    pass
+            else:
+                self.num_messages = 0
         if temperature == float(OFF_TEMPERATURE):
             temperature = None
         return temperature

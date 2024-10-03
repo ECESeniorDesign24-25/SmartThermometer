@@ -18,6 +18,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Set python path
+        run: export PYTHONPATH=$PYTHONPATH:.
+
       - name: Run tests
         run: python3 Tests/test_gui.py
 

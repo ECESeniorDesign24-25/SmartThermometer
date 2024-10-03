@@ -381,7 +381,7 @@
         })
 
         async function updateChart(sensor1Temperature, sensor2Temperature) {
-
+            // shift every points x coordinate left
             temperatureChart.data.datasets[0].data.forEach(function(point) {
                 point.x += 1;
             });
@@ -397,6 +397,7 @@
                 point.x += 1;
             });
 
+            // push temperatures onto the datasets
             if (sensor1Temperature !== -110000.0 && sensor1Temperature !== -100000.0 && sensor1Temperature != null) {
                 temperatureChart.data.datasets[0].data.push({ x: 0, y: sensor1Temperature > 50 || sensor1Temperature < 20 ? NaN : sensor1Temperature});
                 scrollChart.data.datasets[0].data.push({ x: 0, y: sensor1Temperature > 50 || sensor1Temperature < 20 ? NaN : sensor1Temperature});
@@ -438,7 +439,6 @@
 
             } else {
                 temperatureChart.options.scales.x.min = 0;
-
             }
 
             temperatureChart.update("none");
@@ -446,12 +446,13 @@
         }
 
         async function fetchTemperatureData() {
-            const response1 = await fetch('/temperature');
+            const response1 = await fetch('/temperature'); // route for getting temperature
             const data1 = await response1.json();
 
             let sensor1Temperature = data1.temperature1;
             let sensor2Temperature = data1.temperature2;
 
+            // depending on the temperatures print teh appropriate reaction
             if (sensor1Temperature === -110000.0) {
                 document.getElementById('temperatureStatus1').textContent = 'Sensor 1 is unplugged'
             } else {

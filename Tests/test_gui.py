@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest import mock
 from flask import Flask
 from flask_testing import TestCase
-from GUI import app
+from GUI.GUI import app
 import sys
 
 

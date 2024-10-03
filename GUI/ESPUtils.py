@@ -12,18 +12,24 @@ def PollTemperatureFromESP(sensorNumber: int, unit: str = "C"):
     Polls the current temperature from the ESP32 web server
     """
     try:
-        if sensorNumber == 1:
-            url = TEMP1_CHANNEL
-        elif sensorNumber == 2:
-            url = TEMP2_CHANNEL
-        else:
-            return None
-        response = requests.get(url + "?unit=" + unit, timeout=5)
+        response = requests.get(TEMP1_CHANNEL + "?unit=" + unit, timeout=5)
         response.raise_for_status()
-        temperature = float(response.text.split()[0])
-        return temperature
+        temperature1 = float(response.text.split()[0])
+        # return temperature
     except requests.exceptions.RequestException as e:
-        return None
+        temperature1 = None
+
+    try:
+        response = requests.get(TEMP2_CHANNEL + "?unit=" + unit, timeout=5)
+        response.raise_for_status()
+        temperature2 = float(response.text.split()[0])
+        # return temperature
+    except requests.exceptions.RequestException as e:
+        temperature2 = None
+
+    return temperature1, temperature2
+
+
 
 
 def ToggleSensorOnESP(sensorNumber: int, toggle: int):

@@ -129,6 +129,7 @@
                 <option value="TMOBILE">T-Mobile</option>
                 <option value="VERIZON">Verizon</option>
                 <option value="SPRINT">Sprint</option>
+                <option value="USCELLULAR">US Cellular</option>
             </select>
 
             <button type="submit">Submit</button>
@@ -145,11 +146,11 @@
         </form>
 
         <div class="button-container">
-            <form method="POST" action="/power_on">
-                <button type="submit">Turn Sensors On</button>
+            <form method="POST" action="/toggle1">
+                <button type="submit">Toggle Sensor 1</button>
             </form>
-            <form method="POST" action="/power_off">
-                <button type="submit">Turn Sensors Off</button>
+            <form method="POST" action="/toggle2">
+                <button type="submit">Toggle Sensor 2</button>
             </form>
             <form method="POST" action="/switch_scale">
                 <button type="submit">Switch Scale</button>
@@ -200,21 +201,21 @@
             });
 
             // Power Off/On Form Submissions
-            $("form[action='/power_off']").submit(function(event) {
+            $("form[action='/toggle1']").submit(function(event) {
                 event.preventDefault();
-                $.get("/power_off", function(response) {
-                    alert("Sensors turned off successfully!");
+                $.get("/toggle1", function(response) {
+                    alert("Sensor 1 toggled successfully!");
                 }).fail(function() {
-                    alert("Error turning off sensors!");
+                    alert("Error toggling sensor 1!");
                 });
             });
 
-            $("form[action='/power_on']").submit(function(event) {
+            $("form[action='/toggle2']").submit(function(event) {
                 event.preventDefault();
-                $.get("/power_on", function(response) {
-                    alert("Sensors turned on successfully!");
+                $.get("/toggle2", function(response) {
+                    alert("Sensor 2 toggled successfully!");
                 }).fail(function() {
-                    alert("Error turning on sensors!");
+                    alert("Error toggling sensor 2");
                 });
             });
 
@@ -245,24 +246,18 @@
         const MAX_TIME = 300;
 
         const temperatureChart = new Chart(ctx, {
-            type: 'scatter',
+            type: 'line',
             data: {
                 labels: [],
                 datasets: [
                     {
-                {#label: 'Sensor 1 Temperature',#}
                 data: [],
-                {#borderColor: 'rgba(75, 192, 192, 1)',#}
-                {#borderWidth: 2,#}
                 fill: false,
                 yAxisID: 'yCelsius',
                 hidden: false
             },
             {
-                {#label: 'Sensor 2 Temperature',#}
                 data: [],
-                {#borderColor: 'rgba(255, 99, 132, 1)',#}
-                {#borderWidth: 2,#}
                 fill: false,
                 yAxisID: 'yCelsius',
                 hidden: false
@@ -283,15 +278,9 @@
                         },
                         min: 0,
                         ticks: {
-                            maxTicksLimit: 300
+                            maxTicksLimit: 300,
+                            stepSize: 1,
                         }
-                        {#max: 300,#}
-                        {#ticks: {#}
-                        {#    stepSize: 20,  // Set the interval between ticks to 60 seconds#}
-                        {#    callback: function(value) {#}
-                        {#        return value % 20 === 0 ? value : '';  // Show only multiples of 60#}
-                        {#    }#}
-                        {#,#}
                     },
                     y : {
                         ticks: {
@@ -316,9 +305,6 @@
                         min: 50,
                         max: 122,
                         display: false,
-                        {#afterFit: (c) => {#}
-                        {#    c.width = 15;#}
-                        {#,#}
                         title: {
                             display: true,
                             text: 'Temperature (°F)'
@@ -329,6 +315,9 @@
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        enabled: false
                     }
                 }
             }
@@ -336,12 +325,11 @@
         const ctx2 = document.getElementById('scrollChart').getContext('2d');
 
         const scrollChart = new Chart(ctx2, {
-            type: 'scatter',
+            type: 'line',
             data: {
                 labels: [],
                 datasets: [
                     {
-                {#label: 'Sensor 1 Temperature',#}
                 data: [],
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 2,
@@ -350,7 +338,6 @@
                 hidden: true
             },
             {
-                {#label: 'Sensor 2 Temperature',#}
                 data: [],
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 2,
@@ -370,6 +357,9 @@
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        enabled: false
                     }
                 },
                 scales: {
@@ -407,17 +397,26 @@
                 point.x += 1;
             });
 
-            if (sensor1Temperature !== -110000.0) {
-                temperatureChart.data.datasets[0].data.push({ x: 0, y: sensor1Temperature});
-                temperatureChart.data.datasets[1].data.push({ x: 0, y: sensor2Temperature});
-                scrollChart.data.datasets[0].data.push({ x: 0, y: sensor1Temperature});
-                scrollChart.data.datasets[1].data.push({ x: 0, y: sensor2Temperature});
+            if (sensor1Temperature !== -110000.0 && sensor1Temperature !== -100000.0 && sensor1Temperature != null) {
+                temperatureChart.data.datasets[0].data.push({ x: 0, y: sensor1Temperature > 50 || sensor1Temperature < 20 ? NaN : sensor1Temperature});
+                scrollChart.data.datasets[0].data.push({ x: 0, y: sensor1Temperature > 50 || sensor1Temperature < 20 ? NaN : sensor1Temperature});
+            } else {
+                temperatureChart.data.datasets[0].data.push({ x: 0, y: null});
+                scrollChart.data.datasets[0].data.push({ x: 0, y: null});
+            }
+
+            if (sensor2Temperature !== -110000.0 && sensor2Temperature !== -100000.0 && sensor2Temperature != null) {
+                temperatureChart.data.datasets[1].data.push({ x: 0, y: sensor2Temperature > 50 || sensor2Temperature < 20 ? NaN : sensor2Temperature});
+                scrollChart.data.datasets[1].data.push({ x: 0, y: sensor2Temperature > 50 || sensor2Temperature < 20 ? NaN: sensor2Temperature});
+            } else {
+                temperatureChart.data.datasets[1].data.push({ x: 0, y: null});
+                scrollChart.data.datasets[1].data.push({ x: 0, y: null});
             }
 
             timeElapsed += 1;
 
             if (timeElapsed > 20) {
-                temperatureChart.options.scales.x.ticks.stepSize = 20;
+                temperatureChart.options.scales.x.ticks.stepSize = 15;
                 temperatureChart.options.scales.x.ticks.callback = function(value) {return value % 20 === 0 ? value : ''};
                 temperatureChart.options.scales.x.max = timeElapsed;
             }
@@ -427,25 +426,19 @@
             const num_points2 = temperatureChart.data.datasets[1].data.length;
 
             if (num_points1 > 300 || num_points2 > 300) {
-                {#let bigger = num_points1 > num_points2 ? num_points1 : num_points2;#}
                 let bigger = Math.max(num_points2, num_points1);
-                const chartwidth = 985 + ((bigger - 300) * 800/300);
+                const chartwidth = 1000 + ((bigger - 300) * 1000/300);
                 chartcont.style.width = `${chartwidth}px`;
             }
 
             if (timeElapsed > MAX_TIME) {
                 temperatureChart.options.scales.x.min = 0;
-                {#temperatureChart.options.scales.x.max = timeElapsed;#}
+                temperatureChart.options.scales.x.afterFit = function (axis) {axis.width = 300};
                 scrollChart.options.scales.x.min = 0;
-                {#scrollChart.options.scales.x.max = timeElapsed;#}
 
-                // Trigger scrollbar after reaching 300 seconds
-                {#document.querySelector('.large-column').style.overflowX = 'scroll';#}
             } else {
-                // Prevent scroll before 300 seconds
                 temperatureChart.options.scales.x.min = 0;
-                {#temperatureChart.options.scales.x.max = MAX_TIME;#}
-                {#document.querySelector('.large-column').style.overflowX = 'hidden';#}
+
             }
 
             temperatureChart.update("none");
@@ -453,45 +446,44 @@
         }
 
         async function fetchTemperatureData() {
-            const response1 = await fetch('/temperature1');
-            const response2 = await fetch('/temperature2');
+            const response1 = await fetch('/temperature');
             const data1 = await response1.json();
-            const data2 = await response2.json();
 
-            // Convert temperatures if needed
-            let sensor1Temperature = data1.temperature;
-            let sensor2Temperature = data2.temperature;
+            let sensor1Temperature = data1.temperature1;
+            let sensor2Temperature = data1.temperature2;
 
             if (sensor1Temperature === -110000.0) {
                 document.getElementById('temperatureStatus1').textContent = 'Sensor 1 is unplugged'
-            }
-            let sensor1Temp;
-            if (sensor1Temperature != null) {
-                if (currentScale === "F") {
-                    sensor1Temp = celsiusToFahrenheit(sensor1Temperature);
-                } else {
-                    sensor1Temp = sensor1Temperature;
-                }
-                document.getElementById('temperatureStatus1').textContent = `Sensor 1 Temperature (Blue): ${sensor1Temp} °${currentScale}`
             } else {
-                document.getElementById('temperatureStatus1').textContent = 'Sensor 1: No Data Available';
+                let sensor1temp;
+                if (sensor1Temperature != null) {
+                    if (currentScale === "F") {
+                        sensor1temp = celsiusToFahrenheit(sensor1Temperature);
+                    } else {
+                        sensor1temp = sensor1Temperature
+                    }
+                    document.getElementById('temperatureStatus1').textContent = `Sensor 1 Temperature (Blue): ${Math.round(sensor1temp * 100) / 100} °${currentScale}`
+                } else {
+                    document.getElementById('temperatureStatus1').textContent = 'Sensor 1: No Data Available';
 
+                }
             }
 
             if (sensor2Temperature === -110000.0) {
                 document.getElementById('temperatureStatus2').textContent = 'Sensor 2 is unplugged'
-            }
-            let sensor2Temp;
-            if (sensor2Temperature != null) {
-                if (currentScale === "F") {
-                    sensor2Temp = celsiusToFahrenheit(sensor2Temperature);
-                } else {
-                    sensor2Temp = sensor2Temperature;
-                }
-                document.getElementById('temperatureStatus2').textContent = `Sensor 2 Temperature (Red): ${sensor2Temp} °${currentScale}`
             } else {
-                document.getElementById('temperatureStatus2').textContent = 'Sensor 2: No Data Available';
+                let sensor2temp;
+                if (sensor2Temperature != null) {
+                    if (currentScale === "F") {
+                        sensor2temp = celsiusToFahrenheit(sensor2Temperature);
+                    } else {
+                        sensor2temp = sensor2Temperature
+                    }
+                    document.getElementById('temperatureStatus2').textContent = `Sensor 2 Temperature (Red): ${Math.round(sensor2temp * 100) / 100} °${currentScale}`
+                } else {
+                    document.getElementById('temperatureStatus2').textContent = 'Sensor 2: No Data Available';
 
+                }
             }
 
             await updateChart(sensor1Temperature, sensor2Temperature);
@@ -499,14 +491,14 @@
 
         // Conversion functions
         function celsiusToFahrenheit(celsius) {
-            return (celsius * 9 / 5) + 32;
+            return (celsius * 1.8) + 32;
         }
 
         function fahrenheitToCelsius(fahrenheit) {
             return (fahrenheit - 32) * 5 / 9;
         }
 
-        setInterval(fetchTemperatureData, 100);
+        setInterval(fetchTemperatureData, 1000);
     </script>
 </body>
 </html>

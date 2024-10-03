@@ -12,51 +12,64 @@ app = Flask(__name__)
 
 main_client = ReceivingClient()
 
-global unit
+# global unit
 unit = 'C'
+status1 = 1
+status2 = 1
 
 @app.route('/')
 def home():
     return render_template("gui.html")
 
-@app.route('/temperature1', methods=['GET'])
+@app.route('/temperature', methods=['GET'])
 def handle_temperature_from_sensor1():
-    temp = main_client.ProcessTemperature(1, unit)
-    temp = 20
+    temp1, temp2 = main_client.ProcessTemperature(1, unit)
+    # temp2 = main_client.ProcessTemperature(2, unit)
     if app.config['TESTING']:
-        temp = 20
-    print("sensor 1", temp)
-    return jsonify(temperature=temp, tempscale=unit)
-
-@app.route('/temperature2', methods=['GET'])
-def handle_temperature_from_sensor2():
-    temp = main_client.ProcessTemperature(2, unit)
-    temp = 30
-    if app.config['TESTING']:
-        temp = 30
-    print("sensor 2", temp)
-    return jsonify(temperature=temp, tempscale=unit)
+        temp1 = 20
+        temp2 = 30
+    print("sensor 1", temp1)
+    print("sensor 2", temp2)
+    return jsonify(temperature1=temp1, temperature2=temp2, tempscale=unit)
 
 
-@app.route('/power_off', methods=['GET'])
+@app.route('/toggle1', methods=['GET'])
 def handle_power_off():
-    try:
-        print("turning off")
-        requests.get(f"{ESP32_SERVER}/toggle1?toggle=OFF")
-        requests.get(f"{ESP32_SERVER}/toggle2?toggle=OFF")
-    except requests.exceptions.ConnectionError:
-        return {"status": "Failed"}, 500
+    global status1
+    if status1 == 0:
+        status1 = 1
+        try:
+            print("turning on")
+            requests.get(f"{ESP32_SERVER}/toggle1?toggle=ON")
+        except requests.exceptions.ConnectionError:
+            return {"status": "failed"}, 500
+    else:
+        status1 = 0
+        try:
+            print("turning off")
+            requests.get(f"{ESP32_SERVER}/toggle1?toggle=OFF")
+        except requests.exceptions.ConnectionError:
+            return {"status": "Failed"}, 500
 
     return {"status": "Success"}, 201
 
-@app.route('/power_on', methods=['GET'])
+@app.route('/toggle2', methods=['GET'])
 def handle_power_on():
-    try:
-        print("turning On")
-        requests.get(f"{ESP32_SERVER}/toggle1?toggle=ON")
-        requests.get(f"{ESP32_SERVER}/toggle2?toggle=ON")
-    except requests.exceptions.ConnectionError:
-        return {"status": "Failed"}, 500
+    global status2
+    if status2 == 0:
+        status2 = 1
+        try:
+            print("turning On")
+            requests.get(f"{ESP32_SERVER}/toggle2?toggle=ON")
+        except requests.exceptions.ConnectionError:
+            return {"status": "Failed"}, 500
+    else:
+        status2 = 0
+        try:
+            print("turning Off")
+            requests.get(f"{ESP32_SERVER}/toggle2?toggle=OFF")
+        except requests.exceptions.ConnectionError:
+            return {"status": "Failed"}, 500
 
     return {"status": "Success"}, 201
 
@@ -81,6 +94,7 @@ def handle_min_max():
     # os.environ["MAX_TEMP"] = str(max_temp)
     main_client.set_max_temp(float(max_temp))
     main_client.set_min_temp(float(min_temp))
+    main_client.reset_num_messages()
     print(min_temp, max_temp)
     return {"status": "Success"}, 201
 
@@ -94,7 +108,8 @@ def handle_switch_scale():
         unit = "C"
     return {"status": "Success", "unit": unit}, 201
 
-
+def fahrenheit_to_celsius(fahrenheit):
+    return (fahrenheit - 32) / 1.8
 
 if __name__ == '__main__':
     app.run(threaded=True)

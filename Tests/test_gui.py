@@ -17,32 +17,26 @@ class FlaskAppTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Temperature Graph - Two Sensors", response.data)
 
-    # Test the temperature1 endpoint
+    # Test the temperature endpoint
     def test_temperature1_endpoint(self):
-        response = self.client.get('/temperature1')
+        response = self.client.get('/temperature')
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
-        self.assertEqual(data['temperature'], 20)
+        self.assertEqual(data['temperature1'], 20)
+        self.assertEqual(data['temperature2'], 30)
         self.assertEqual(data['tempscale'], 'F')
-
-    # Test the temperature2 endpoint
-    def test_temperature2_endpoint(self):
-        response = self.client.get('/temperature2')
-        self.assertEqual(response.status_code, 200)
-        data = response.get_json()
-        self.assertEqual(data['temperature'], 30)
 
     # Test the power on/off routes
     def test_power_on(self):
         with unittest.mock.patch('requests.get') as mock_get:
             mock_get.return_value.status_code = 200
-            response = self.client.get('/power_on')
+            response = self.client.get('/toggle2')
             self.assertEqual(response.status_code, 201)
 
     def test_power_off(self):
         with unittest.mock.patch('requests.get') as mock_get:
             mock_get.return_value.status_code = 200
-            response = self.client.get('/power_off')
+            response = self.client.get('/toggle1')
             self.assertEqual(response.status_code, 201)
 
     # Test the user info endpoint

@@ -1,5 +1,4 @@
 import smtplib
-from Receiver import Receiver
 from email.message import EmailMessage
 from Constants import EMAIL_ADDRESS, EMAIL_PASSWORD
 

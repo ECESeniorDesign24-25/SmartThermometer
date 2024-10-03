@@ -1,8 +1,6 @@
-from Constants import EMAIL_ADDRESS, OFF_TEMPERATURE #TEMPERATURES # MAX_TEMPERATURE, MIN_TEMPERATURE, OFF_TEMPERATURE
+from Constants import EMAIL_ADDRESS, OFF_TEMPERATURE
 from EmailService import SendEmail
-# from GUI.GUI import fahrenheit_to_celsius
 from SMSService import SendSMS
-from Receiver import Receiver
 from ESPUtils import PollTemperatureFromESP
 
 

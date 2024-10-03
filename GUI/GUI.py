@@ -1,10 +1,6 @@
 import requests
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 from Constants import ESP32_SERVER
-# from Client import Start
-from ESPUtils import PollTemperatureFromESP, ToggleSensorOnESP
-from Constants import TEMPERATURES
-import os
 from Client import ReceivingClient
 
 app = Flask(__name__)
@@ -24,7 +20,7 @@ def home():
 @app.route('/temperature', methods=['GET'])
 def handle_temperature_from_sensor1():
     temp1, temp2 = main_client.ProcessTemperature(1, unit)
-    # temp2 = main_client.ProcessTemperature(2, unit)
+
     if app.config['TESTING']:
         temp1 = 20
         temp2 = 30
@@ -82,7 +78,6 @@ def handle_user_info():
     main_client.set_phone_number(phone)
     main_client.set_email_address(email)
     print(carrier, phone, email)
-    # Start(carrier, phone, email)
 
     return {"status": "Success"}, 201
 
@@ -90,8 +85,7 @@ def handle_user_info():
 def handle_min_max():
     min_temp = request.args.get('min')
     max_temp = request.args.get('max')
-    # os.environ["MIN_TEMP"] = str(min_temp)
-    # os.environ["MAX_TEMP"] = str(max_temp)
+
     main_client.set_max_temp(float(max_temp))
     main_client.set_min_temp(float(min_temp))
     main_client.reset_num_messages()
@@ -107,9 +101,6 @@ def handle_switch_scale():
     else:
         unit = "C"
     return {"status": "Success", "unit": unit}, 201
-
-def fahrenheit_to_celsius(fahrenheit):
-    return (fahrenheit - 32) / 1.8
 
 if __name__ == '__main__':
     app.run(threaded=True)

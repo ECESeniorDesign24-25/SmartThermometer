@@ -54,3 +54,4 @@ urllib3==2.2.3
 wcwidth==0.2.13
 wget==3.2
 flask==3.0.3
+flask-testing==0.8.1

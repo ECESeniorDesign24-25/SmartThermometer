@@ -247,16 +247,12 @@ void loop() {
   if (temp1ButtonPressed) {
       temp1ButtonPressed = !temp1ButtonPressed;  
       sensor1Enabled = !sensor1Enabled;
-      temp1 = getTemperature(sensor1, unit, sensor1Enabled);
-      displayTemperature(1, temp1);
   }
 
   if (temp2ButtonPressed) {
       temp2ButtonPressed = !temp2ButtonPressed;
       sensor2Enabled = !sensor2Enabled;
-      temp2 = getTemperature(sensor2, unit, sensor2Enabled);
-      displayTemperature(2, temp2);
-    }
+  }
 
   // update temperatures
   temp1 = getTemperature(sensor1, unit, sensor1Enabled);

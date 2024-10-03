@@ -1,5 +1,5 @@
+import os
 import unittest
-from pathlib import Path
 from unittest import mock
 from flask import Flask
 from flask_testing import TestCase
@@ -7,12 +7,9 @@ from GUI import app
 import sys
 
 
-# Get the current directory and construct the GUI directory path
-current_directory = Path(__file__).resolve().parent
-gui_directory = current_directory.parent / "GUI"
-
-# Insert the GUI directory into sys.path
-sys.path.insert(0, gui_directory.absolute().as_posix())
+CURR_DIR = os.path.dirname(os.path.abspath(__file__))
+GUI_DIR = os.path.join(CURR_DIR, "..", "GUI")
+sys.path.insert(0, os.path.abspath(GUI_DIR))
 
 class FlaskAppTest(TestCase):
     def create_app(self):

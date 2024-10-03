@@ -18,11 +18,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Set python path
-        run: export PYTHONPATH=$PYTHONPATH:.
+      - name: Set up permissions
+        run: chmod +x Tests/run_gui_tests.sh
 
-      - name: Run tests
-        run: python3 Tests/test_gui.py
+      - name: Run test script
+        run: ./Tests/run_gui_tests.sh
+
+#      - name: Run tests
+#        run: python3 Tests/test_gui.py
 
       - name: Check test result
         if: failure()

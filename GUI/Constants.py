@@ -9,6 +9,7 @@ CARRIERS = {
     "TMOBILE": " @tmomail.net",
     "VERIZON": "@vtext.com",
     "SPRINT": "@page.nextel.com",
+    "USCELLULAR": "@email.uscc.net"
 }
 
 # Temperature constants

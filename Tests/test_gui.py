@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest import mock
 from flask import Flask
 from flask_testing import TestCase
-from GUI.GUI import app
+from GUI import app
 import sys
 
 
@@ -12,7 +12,7 @@ current_directory = Path(__file__).resolve().parent
 gui_directory = current_directory.parent / "GUI"
 
 # Insert the GUI directory into sys.path
-sys.path.insert(0, str(gui_directory))
+sys.path.insert(0, gui_directory.absolute().as_posix())
 
 class FlaskAppTest(TestCase):
     def create_app(self):

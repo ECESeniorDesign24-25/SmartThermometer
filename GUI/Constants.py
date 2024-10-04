@@ -9,12 +9,19 @@ CARRIERS = {
     "TMOBILE": " @tmomail.net",
     "VERIZON": "@vtext.com",
     "SPRINT": "@page.nextel.com",
+    "USCELLULAR": "@email.uscc.net"
 }
 
 # Temperature constants
 MAX_TEMPERATURE = 100.0
 MIN_TEMPERATURE = 0.0
 OFF_TEMPERATURE = -100000.00
+TEMPERATURES = {
+    "MAX_TEMP": 100,
+    "MIN_TEMP": -10,
+    "OFF_TEMP": -100000.00,
+}
+# ESP32_SERVER = "http://192.168.0.22"
 
 # ESP32 web server channels
 ESP32_IP = getIP()

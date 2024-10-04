@@ -1,14 +1,13 @@
 import smtplib
-from Receiver import Receiver
 from Constants import EMAIL_ADDRESS, EMAIL_PASSWORD, CARRIERS
 
 
-def SendSMS(receiver: Receiver, message: str):
+def SendSMS(client_phone, client_carrier, message: str):
     """
     Sends an SMS to the given receiver phone number
     """
     try:
-        receiverNumber = f"{receiver.phoneNumber}{CARRIERS[receiver.cellCarrier]}"
+        receiverNumber = f"{client_phone}{CARRIERS[client_carrier]}"
         if not EMAIL_ADDRESS or EMAIL_ADDRESS == "":
             print(
                 "Invalid 'from' email address. Set it by running: \n\texport EMAIL_ADDRESS='[your email address]'"

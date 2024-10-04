@@ -33,7 +33,14 @@ git clone https://github.com/ECESeniorDesign24-25/SmartThermometer.git
 5. You should see serial output on your computer with a 115200 baud rate.
 
 
-### GUI Setup (Python Client) TODO
+### GUI Setup (Python Client)
+1. To run the GUI we need to set the ESP IP address in the `GUI/Constants.py` file then simply run the `GUI/GUI.py` file.
+2. You will be shown a visual on your local host at 127.0.0.1/5000. You can click on the link in the command line interface otherwise type the address into a web browser.
+3. The GUI will have a few forms users can fill out.
+   - **Contact Information:** There are forms for entering contact information including an email, a phone number, and carrier which are submitted using the `submit` button. This contact information is used to send alerts to a user when the temperature is above the maximum or below the minimum temperature.
+   - **Min and Max Temperature:** The minimum and maximum temperatures can also be set on the GUI by filling in the fields and clicking the `Set Max and Min` button. By default, the minimum is 19 and maximum is 30 degrees Celsius.
+   - **Turning Sensors On/Off:** The sensors can be turned off remotely from the GUI without direct connection to the ESP via the `Turn Sensor On/Off` buttons.
+   - **Switching Temperature Scale:** TODO: There is a button for switching the temperature scales between Celsius and Farenheit.
 
 ### Troubleshooting
 1. You can run the Tests/run_client_tests.sh file to quickly verify connection between PC and ESP32. Note: You must be on the same WiFi network as the ESP32:

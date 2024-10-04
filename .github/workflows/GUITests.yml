@@ -1,0 +1,32 @@
+name: GUI Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set up permissions
+        run: chmod +x Tests/run_gui_tests.sh
+
+      - name: Run test script
+        run: ./Tests/run_gui_tests.sh
+
+#      - name: Run tests
+#        run: python3 Tests/test_gui.py
+
+      - name: Check test result
+        if: failure()
+        run: echo "Tests failed"
